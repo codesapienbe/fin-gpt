@@ -1,50 +1,99 @@
-# Welcome to your Expo app 👋
+# Invoice Management App
 
-This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
+A simple invoice management mobile application built with React Native and Expo for self-employed individuals and small companies.
 
-## Get started
+## Features
 
-1. Install dependencies
+- **Upload Invoice:** Upload invoice files (PDF, JPG, or PNG) with metadata (invoice number, date, amount, client name).
+- **View Invoices:** Browse all your uploaded invoices in a clean list view with basic invoice details.
+- **Share Invoice:** Share invoices via email or by generating shareable links.
 
-   ```bash
-   npm install
-   ```
+## Getting Started
 
-2. Start the app
+### Prerequisites
 
-   ```bash
-   npx expo start
-   ```
+- Node.js (v14.0 or later)
+- npm or yarn
+- Expo CLI
 
-In the output, you'll find options to open the app in a
+### Installation
 
-- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
-- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
-- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
-- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
-
-You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
-
-## Get a fresh project
-
-When you're ready, run:
-
+1. Clone the repository
 ```bash
-npm run reset-project
+git clone https://github.com/yourusername/invoice-management-app.git
+cd invoice-management-app
 ```
 
-This command will move the starter code to the **app-example** directory and create a blank **app** directory where you can start developing.
+2. Install dependencies
+```bash
+npm install
+# or
+yarn install
+```
 
-## Learn more
+3. Start the application
+```bash
+npm start
+# or
+yarn start
+```
 
-To learn more about developing your project with Expo, look at the following resources:
+4. Open the app on your device using the Expo Go app or an emulator.
 
-- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
-- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
+## Tech Stack
 
-## Join the community
+- **React Native**: Core framework for building the mobile application
+- **Expo**: Development platform and tools
+- **AsyncStorage**: Local data persistence
+- **Expo Document Picker**: For file selection
+- **Expo Sharing**: For sharing files and links
 
-Join our community of developers creating universal apps.
+## Project Structure
 
-- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
-- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
+```
+invoice-management-app/
+├── app/                      # Main application screens
+│   ├── (tabs)/               # Tab-based navigation screens
+│   │   ├── index.tsx         # Home/Invoices screen
+│   │   └── settings.tsx      # Settings screen
+│   └── _layout.tsx           # Root layout component
+├── components/               # Reusable UI components
+│   ├── InvoiceItem.tsx       # Invoice list item component
+│   ├── InvoiceUploadModal.tsx # Modal for uploading invoices
+│   └── ShareInvoiceModal.tsx # Modal for sharing invoices
+├── services/                 # Business logic and services
+│   └── InvoiceService.ts     # Invoice data management service
+└── assets/                   # Static assets
+```
+
+## Planned Future Enhancements
+
+- User authentication and secure login
+- Invoice search and filtering
+- Automated invoice scanning and data extraction
+- Invoice templates and customization
+- Cloud synchronization for invoice data
+- Multi-device access
+- Integration with accounting software
+
+## Security Considerations
+
+This app currently does not include authentication. For production use, you should implement:
+
+- User authentication
+- Secure file storage
+- Data encryption
+- API security if connecting to a backend service
+
+## License
+
+This project is licensed under the MIT License - see the LICENSE file for details.
+
+## Acknowledgments
+
+- Expo team for the excellent development platform
+- React Native community for their comprehensive documentation
+
+---
+
+*This app was built as a simple demo and may require additional features for production use.*
