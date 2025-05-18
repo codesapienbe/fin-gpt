@@ -3,6 +3,7 @@ import { useRouter } from 'expo-router';
 import React, { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Alert, ScrollView, StyleSheet, Text, TouchableOpacity, View, useColorScheme } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { Currency, Language, getCurrencyConfig, getCurrentCurrency, getLanguageConfig } from '../../services/i18n';
 
@@ -63,114 +64,116 @@ export default function SettingsScreen() {
   const currencyInfo = getCurrencyConfig(currentCurrency);
 
   return (
-    <ScrollView style={[styles.container, isDarkMode && styles.darkBackground]}>
-      <View style={styles.section}>
-        <Text style={[styles.sectionTitle, isDarkMode && styles.darkSectionTitle]}>{t('account')}</Text>
-        <View style={[styles.card, isDarkMode && styles.darkCard]}>
-          <SettingsItem
-            icon="person-outline"
-            title={t('profile')}
-            description={t('profileDescription')}
-            onPress={() => router.push('/profile')}
-          />
-          <View style={[styles.divider, isDarkMode && styles.darkDivider]} />
-          <SettingsItem
-            icon="key-outline"
-            title={t('authentication')}
-            description={t('authenticationDescription')}
-            onPress={() => router.push('/authentication')}
-          />
+    <SafeAreaView style={[styles.container, isDarkMode && styles.darkBackground]} edges={['top', 'right', 'left']}>
+      <ScrollView style={styles.scrollView}>
+        <View style={styles.section}>
+          <Text style={[styles.sectionTitle, isDarkMode && styles.darkSectionTitle]}>{t('account')}</Text>
+          <View style={[styles.card, isDarkMode && styles.darkCard]}>
+            <SettingsItem
+              icon="person-outline"
+              title={t('profile')}
+              description={t('profileDescription')}
+              onPress={() => router.push('/profile')}
+            />
+            <View style={[styles.divider, isDarkMode && styles.darkDivider]} />
+            <SettingsItem
+              icon="key-outline"
+              title={t('authentication')}
+              description={t('authenticationDescription')}
+              onPress={() => router.push('/authentication')}
+            />
+          </View>
         </View>
-      </View>
 
-      <View style={styles.section}>
-        <Text style={[styles.sectionTitle, isDarkMode && styles.darkSectionTitle]}>{t('invoices')}</Text>
-        <View style={[styles.card, isDarkMode && styles.darkCard]}>
-          <SettingsItem
-            icon="document-text-outline"
-            title={t('invoiceTemplates')}
-            description={t('invoiceTemplatesDescription')}
-            onPress={() => router.push('/invoice-templates')}
-          />
-          <View style={[styles.divider, isDarkMode && styles.darkDivider]} />
-          <SettingsItem
-            icon="folder-outline"
-            title={t('defaultSaveLocation')}
-            description={t('defaultSaveLocationDescription')}
-            onPress={handleNotImplemented}
-          />
-          <View style={[styles.divider, isDarkMode && styles.darkDivider]} />
-          <SettingsItem
-            icon="cloud-upload-outline"
-            title={t('cloudBackup')}
-            description={t('cloudBackupDescription')}
-            onPress={handleNotImplemented}
-            color="#5856D6"
-          />
+        <View style={styles.section}>
+          <Text style={[styles.sectionTitle, isDarkMode && styles.darkSectionTitle]}>{t('invoices')}</Text>
+          <View style={[styles.card, isDarkMode && styles.darkCard]}>
+            <SettingsItem
+              icon="document-text-outline"
+              title={t('invoiceTemplates')}
+              description={t('invoiceTemplatesDescription')}
+              onPress={() => router.push('/invoice-templates')}
+            />
+            <View style={[styles.divider, isDarkMode && styles.darkDivider]} />
+            <SettingsItem
+              icon="folder-outline"
+              title={t('defaultSaveLocation')}
+              description={t('defaultSaveLocationDescription')}
+              onPress={handleNotImplemented}
+            />
+            <View style={[styles.divider, isDarkMode && styles.darkDivider]} />
+            <SettingsItem
+              icon="cloud-upload-outline"
+              title={t('cloudBackup')}
+              description={t('cloudBackupDescription')}
+              onPress={handleNotImplemented}
+              color="#5856D6"
+            />
+          </View>
         </View>
-      </View>
 
-      <View style={styles.section}>
-        <Text style={[styles.sectionTitle, isDarkMode && styles.darkSectionTitle]}>{t('appearance')}</Text>
-        <View style={[styles.card, isDarkMode && styles.darkCard]}>
-          <SettingsItem
-            icon="color-palette-outline"
-            title={t('theme')}
-            description={t('themeDescription')}
-            onPress={() => router.push('/theme-settings')}
-          />
-          <View style={[styles.divider, isDarkMode && styles.darkDivider]} />
-          <SettingsItem
-            icon="text-outline"
-            title={t('text')}
-            description={t('textDescription')}
-            onPress={() => router.push('/text-settings')}
-          />
-          <View style={[styles.divider, isDarkMode && styles.darkDivider]} />
-          <SettingsItem
-            icon="language-outline"
-            title={t('language')}
-            description={currentLanguage.name}
-            onPress={() => router.push({pathname: '/language-settings'})}
-            color="#FF9500"
-          />
-          <View style={[styles.divider, isDarkMode && styles.darkDivider]} />
-          <SettingsItem
-            icon="cash-outline"
-            title={t('currency')}
-            description={`${currencyInfo.symbol} ${currencyInfo.name} (${currencyInfo.code})`}
-            onPress={() => router.push({pathname: '/currency-settings'})}
-            color="#30B94D"
-          />
+        <View style={styles.section}>
+          <Text style={[styles.sectionTitle, isDarkMode && styles.darkSectionTitle]}>{t('appearance')}</Text>
+          <View style={[styles.card, isDarkMode && styles.darkCard]}>
+            <SettingsItem
+              icon="color-palette-outline"
+              title={t('theme')}
+              description={t('themeDescription')}
+              onPress={() => router.push('/theme-settings')}
+            />
+            <View style={[styles.divider, isDarkMode && styles.darkDivider]} />
+            <SettingsItem
+              icon="text-outline"
+              title={t('text')}
+              description={t('textDescription')}
+              onPress={() => router.push('/text-settings')}
+            />
+            <View style={[styles.divider, isDarkMode && styles.darkDivider]} />
+            <SettingsItem
+              icon="language-outline"
+              title={t('language')}
+              description={currentLanguage.name}
+              onPress={() => router.push({pathname: '/language-settings'})}
+              color="#FF9500"
+            />
+            <View style={[styles.divider, isDarkMode && styles.darkDivider]} />
+            <SettingsItem
+              icon="cash-outline"
+              title={t('currency')}
+              description={`${currencyInfo.symbol} ${currencyInfo.name} (${currencyInfo.code})`}
+              onPress={() => router.push({pathname: '/currency-settings'})}
+              color="#30B94D"
+            />
+          </View>
         </View>
-      </View>
 
-      <View style={styles.section}>
-        <Text style={[styles.sectionTitle, isDarkMode && styles.darkSectionTitle]}>{t('about')}</Text>
-        <View style={[styles.card, isDarkMode && styles.darkCard]}>
-          <SettingsItem
-            icon="information-circle-outline"
-            title={t('aboutApp')}
-            description="Version 1.0.0"
-            onPress={handleNotImplemented}
-          />
-          <View style={[styles.divider, isDarkMode && styles.darkDivider]} />
-          <SettingsItem
-            icon="help-circle-outline"
-            title={t('helpSupport')}
-            description={t('helpSupportDescription')}
-            onPress={handleNotImplemented}
-            color="#34C759"
-          />
+        <View style={styles.section}>
+          <Text style={[styles.sectionTitle, isDarkMode && styles.darkSectionTitle]}>{t('about')}</Text>
+          <View style={[styles.card, isDarkMode && styles.darkCard]}>
+            <SettingsItem
+              icon="information-circle-outline"
+              title={t('aboutApp')}
+              description="Version 1.0.0"
+              onPress={handleNotImplemented}
+            />
+            <View style={[styles.divider, isDarkMode && styles.darkDivider]} />
+            <SettingsItem
+              icon="help-circle-outline"
+              title={t('helpSupport')}
+              description={t('helpSupportDescription')}
+              onPress={handleNotImplemented}
+              color="#34C759"
+            />
+          </View>
         </View>
-      </View>
 
-      <View style={styles.footer}>
-        <Text style={[styles.footerText, isDarkMode && styles.darkFooterText]}>
-          Invoice Management App v1.0.0
-        </Text>
-      </View>
-    </ScrollView>
+        <View style={styles.footer}>
+          <Text style={[styles.footerText, isDarkMode && styles.darkFooterText]}>
+            Invoice Management App v1.0.0
+          </Text>
+        </View>
+      </ScrollView>
+    </SafeAreaView>
   );
 }
 
@@ -178,6 +181,9 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#f5f5f5',
+  },
+  scrollView: {
+    flex: 1,
   },
   darkBackground: {
     backgroundColor: '#121212',

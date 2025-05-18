@@ -3,6 +3,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useRouter } from 'expo-router';
 import React, { useEffect, useState } from 'react';
 import { Alert, ScrollView, StyleSheet, Text, TouchableOpacity, useColorScheme, View } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 type TextSize = 'small' | 'medium' | 'large';
 type FontFamily = 'system' | 'serif' | 'monospace';
@@ -136,7 +137,7 @@ export default function TextSettingsScreen() {
   };
 
   return (
-    <View style={[styles.container, isDarkMode && styles.darkBackground]}>
+    <SafeAreaView style={[styles.container, isDarkMode && styles.darkBackground]} edges={['top', 'right', 'left']}>
       <View style={styles.header}>
         <TouchableOpacity 
           style={styles.backButton} 
@@ -213,7 +214,7 @@ export default function TextSettingsScreen() {
           </Text>
         </TouchableOpacity>
       </ScrollView>
-    </View>
+    </SafeAreaView>
   );
 }
 

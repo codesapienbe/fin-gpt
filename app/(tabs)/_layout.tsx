@@ -29,10 +29,20 @@ export default function TabLayout() {
       <Tabs.Screen
         name="home"
         options={{
-          title: t('dashboard'),
-          headerTitle: t('dashboard'),
+          title: t('home'),
+          headerTitle: t('assistant'),
           tabBarIcon: ({ color, size }) => (
-            <Ionicons name="home" size={size} color={color} />
+            <Ionicons name="chatbubble-ellipses" size={size} color={color} />
+          ),
+        }}
+      />
+      <Tabs.Screen
+        name="dashboard"
+        options={{
+          title: t('dashboard'),
+          headerTitle: t('financialDashboard'),
+          tabBarIcon: ({ color, size }) => (
+            <Ionicons name="bar-chart" size={size} color={color} />
           ),
         }}
       />
@@ -46,26 +56,39 @@ export default function TabLayout() {
           ),
         }}
       />
-      <Tabs.Screen
-        name="search"
-        options={{
-          title: t('search'),
-          headerTitle: t('searchInvoices'),
-          tabBarIcon: ({ color, size }) => (
-            <Ionicons name="search" size={size} color={color} />
-          ),
-        }}
-      />
-      <Tabs.Screen
-        name="settings"
-        options={{
-          title: t('settings'),
-          headerTitle: t('settings'),
-          tabBarIcon: ({ color, size }) => (
-            <Ionicons name="settings-outline" size={size} color={color} />
-          ),
-        }}
-      />
     </Tabs>
+  );
+}
+
+// Custom TabBar button for the actions tab (makes it look special)
+function TabBarButton(props: any) {
+  const colorScheme = useColorScheme();
+  const isDarkMode = colorScheme === 'dark';
+  
+  return (
+    <TabBarSpecial 
+      {...props}
+      color={props.accessibilityState.selected ? "#007AFF" : "#8E8E93"}
+      isDarkMode={isDarkMode}
+    />
+  );
+}
+
+// Special tab bar button with slightly different styling
+function TabBarSpecial({ 
+  onPress, 
+  color, 
+  children,
+  isDarkMode
+}: {
+  onPress: () => void;
+  color: string;
+  children: React.ReactNode;
+  isDarkMode: boolean;
+}) {
+  return (
+    <React.Fragment>
+      {children}
+    </React.Fragment>
   );
 }

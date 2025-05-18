@@ -4,6 +4,7 @@ import * as ImagePicker from 'expo-image-picker';
 import { useRouter } from 'expo-router';
 import React, { useState } from 'react';
 import { Alert, Image, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View, useColorScheme } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 interface ProfileData {
   name: string;
@@ -93,7 +94,7 @@ export default function ProfileScreen() {
   };
 
   return (
-    <View style={[styles.container, isDarkMode && styles.darkBackground]}>
+    <SafeAreaView style={[styles.container, isDarkMode && styles.darkBackground]} edges={['top', 'right', 'left']}>
       <View style={styles.header}>
         <TouchableOpacity 
           style={styles.backButton} 
@@ -200,7 +201,7 @@ export default function ProfileScreen() {
           </TouchableOpacity>
         </View>
       </ScrollView>
-    </View>
+    </SafeAreaView>
   );
 }
 

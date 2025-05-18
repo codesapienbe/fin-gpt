@@ -1,368 +1,193 @@
+import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
-import React, { useEffect, useState } from 'react';
+import React, { useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
-  ActivityIndicator,
-  Dimensions,
+  KeyboardAvoidingView,
+  Platform,
   ScrollView,
   StyleSheet,
   Text,
+  TextInput,
+  TouchableOpacity,
   View,
   useColorScheme
 } from 'react-native';
-import { BarChart } from 'react-native-chart-kit';
 
-import InvoiceService, { InvoiceData } from '../../services/InvoiceService';
-import {
-  Currency,
-  Language,
-  formatCurrency,
-  getCurrencyConfig,
-  getCurrentCurrency,
-  getLocalizedMonths
-} from '../../services/i18n';
+interface Message {
+  id: string;
+  text: string;
+  isUser: boolean;
+  timestamp: Date;
+}
 
-// Import i18n instance to ensure it's initialized
-import '../../services/i18n';
-
-const screenWidth = Dimensions.get('window').width;
-
-// Mock data for better visualization
-const mockMonthlyData = [2500, 3200, 4100, 3800, 5200, 4700, 6100, 5800, 7200, 6500, 8100, 7500];
-const mockInvoices: InvoiceData[] = [
-  {
-    id: 'mock1',
-    invoiceNumber: 'INV-2024-001',
-    clientName: 'Acme Corporation',
-    amount: 4750.00,
-    date: '2024-06-05',
-    fileName: 'invoice-001.pdf',
-    fileUri: 'https://example.com/invoices/001.pdf',
-    fileType: 'application/pdf',
-    uploadDate: '2024-06-05T10:23:45Z',
-    status: 'paid'
-  },
-  {
-    id: 'mock2',
-    invoiceNumber: 'INV-2024-002',
-    clientName: 'TechStart Inc.',
-    amount: 3250.50,
-    date: '2024-06-03',
-    fileName: 'invoice-002.pdf',
-    fileUri: 'https://example.com/invoices/002.pdf',
-    fileType: 'application/pdf',
-    uploadDate: '2024-06-03T14:15:22Z',
-    status: 'pending'
-  },
-  {
-    id: 'mock3',
-    invoiceNumber: 'INV-2024-003',
-    clientName: 'Global Logistics Ltd',
-    amount: 7890.75,
-    date: '2024-05-28',
-    fileName: 'invoice-003.pdf',
-    fileUri: 'https://example.com/invoices/003.pdf',
-    fileType: 'application/pdf',
-    uploadDate: '2024-05-28T09:10:15Z',
-    status: 'overdue'
-  },
-  {
-    id: 'mock4',
-    invoiceNumber: 'INV-2024-004',
-    clientName: 'Digital Marketing Agency',
-    amount: 2350.00,
-    date: '2024-05-25',
-    fileName: 'invoice-004.pdf',
-    fileUri: 'https://example.com/invoices/004.pdf',
-    fileType: 'application/pdf',
-    uploadDate: '2024-05-25T16:45:30Z',
-    status: 'paid'
-  },
-  {
-    id: 'mock5',
-    invoiceNumber: 'INV-2024-005',
-    clientName: 'Creative Studios',
-    amount: 1875.25,
-    date: '2024-05-20',
-    fileName: 'invoice-005.pdf',
-    fileUri: 'https://example.com/invoices/005.pdf',
-    fileType: 'application/pdf',
-    uploadDate: '2024-05-20T11:30:45Z',
-    status: 'pending'
-  }
-];
-
-export default function DashboardScreen() {
+export default function HomeScreen() {
   const router = useRouter();
   const colorScheme = useColorScheme();
   const isDarkMode = colorScheme === 'dark';
-  const { t, i18n } = useTranslation();
-  const [invoices, setInvoices] = useState<InvoiceData[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [currentLanguage, setCurrentLanguage] = useState<Language>(i18n.language as Language);
-  const [currentCurrency, setCurrentCurrency] = useState<Currency>('EUR');
-  const [formattedAmounts, setFormattedAmounts] = useState<{[key: string]: string}>({});
-  const [stats, setStats] = useState({
-    totalInvoices: 0,
-    totalAmount: 0,
-    paidInvoices: 0,
-    pendingInvoices: 0,
-    overdueInvoices: 0,
-    avgAmount: 0,
-  });
-
-  useEffect(() => {
-    loadData();
-    loadCurrency();
-  }, []);
-
-  useEffect(() => {
-    // Re-render when language changes from settings
-    setCurrentLanguage(i18n.language as Language);
-  }, [i18n.language]);
-
-  useEffect(() => {
-    // Format all amounts when currency changes
-    formatAllAmounts();
-  }, [currentCurrency, stats, invoices]);
-
-  const loadCurrency = async () => {
-    try {
-      const currency = await getCurrentCurrency();
-      setCurrentCurrency(currency);
-    } catch (error) {
-      console.error('Error loading currency preference:', error);
+  const { t } = useTranslation();
+  const [inputText, setInputText] = useState('');
+  const [messages, setMessages] = useState<Message[]>([
+    {
+      id: '1',
+      text: t('assistantWelcome'),
+      isUser: false,
+      timestamp: new Date(),
     }
-  };
+  ]);
+  const [isProcessing, setIsProcessing] = useState(false);
+  const scrollViewRef = useRef<ScrollView>(null);
 
-  const formatAllAmounts = async () => {
-    if (!stats) return;
+  const handleSend = () => {
+    if (!inputText.trim()) return;
+
+    // Add user message
+    const userMessage: Message = {
+      id: Date.now().toString(),
+      text: inputText,
+      isUser: true,
+      timestamp: new Date(),
+    };
     
-    try {
-      // Format static amounts
-      const formatted = {
-        totalAmount: await formatCurrency(stats.totalAmount, currentCurrency),
-        avgAmount: await formatCurrency(stats.avgAmount, currentCurrency),
-      };
-      
-      setFormattedAmounts(formatted);
-    } catch (error) {
-      console.error('Error formatting amounts:', error);
-    }
-  };
+    setMessages(prev => [...prev, userMessage]);
+    setInputText('');
+    setIsProcessing(true);
 
-  const loadData = async () => {
-    setIsLoading(true);
-    try {
-      let invoiceData = await InvoiceService.getInvoices();
+    // Scroll to bottom after sending message
+    setTimeout(() => {
+      scrollViewRef.current?.scrollToEnd({ animated: true });
+    }, 100);
+
+    // Simulate AI response after a delay
+    setTimeout(() => {
+      // Here you would normally make an API call to get the AI response
+      let aiResponse: Message;
       
-      // Add mock data if no real data exists
-      if (invoiceData.length === 0) {
-        invoiceData = mockInvoices;
+      if (inputText.toLowerCase().includes('invoice') || 
+          inputText.toLowerCase().includes('scan') || 
+          inputText.toLowerCase().includes('upload')) {
+        aiResponse = {
+          id: (Date.now() + 1).toString(),
+          text: t('assistantInvoiceResponse'),
+          isUser: false,
+          timestamp: new Date(),
+        };
+      } else if (inputText.toLowerCase().includes('dashboard') || 
+                inputText.toLowerCase().includes('report') || 
+                inputText.toLowerCase().includes('analytics')) {
+        aiResponse = {
+          id: (Date.now() + 1).toString(),
+          text: t('assistantDashboardResponse'),
+          isUser: false,
+          timestamp: new Date(),
+        };
+      } else {
+        aiResponse = {
+          id: (Date.now() + 1).toString(),
+          text: t('assistantDefaultResponse'),
+          isUser: false,
+          timestamp: new Date(),
+        };
       }
       
-      setInvoices(invoiceData);
+      setMessages(prev => [...prev, aiResponse]);
+      setIsProcessing(false);
       
-      // Calculate statistics
-      const totalAmount = invoiceData.reduce((sum, invoice) => sum + invoice.amount, 0);
-      const paidInvoices = invoiceData.filter(inv => inv.status === 'paid').length;
-      const pendingInvoices = invoiceData.filter(inv => inv.status === 'pending').length;
-      const overdueInvoices = invoiceData.filter(inv => inv.status === 'overdue').length;
-      
-      setStats({
-        totalInvoices: invoiceData.length,
-        totalAmount,
-        paidInvoices: paidInvoices || Math.floor(invoiceData.length * 0.6),
-        pendingInvoices: pendingInvoices || Math.floor(invoiceData.length * 0.3),
-        overdueInvoices: overdueInvoices || Math.ceil(invoiceData.length * 0.1),
-        avgAmount: invoiceData.length ? (totalAmount / invoiceData.length) : 0,
-      });
-    } catch (error) {
-      console.error('Error loading dashboard data:', error);
-    } finally {
-      setIsLoading(false);
-    }
+      // Scroll to bottom after receiving response
+      setTimeout(() => {
+        scrollViewRef.current?.scrollToEnd({ animated: true });
+      }, 100);
+    }, 1500);
   };
 
-  // Format currency using the i18n service with async handling
-  const handleCurrencyFormat = async (amount: number): Promise<string> => {
-    try {
-      return await formatCurrency(amount, currentCurrency);
-    } catch (error) {
-      console.error('Error formatting currency:', error);
-      return amount.toString();
-    }
-  };
-
-  // Get status translation
-  const getStatusTranslation = (status: string) => {
-    switch (status) {
-      case 'paid':
-        return t('paid');
-      case 'pending':
-        return t('pending');
-      case 'overdue':
-        return t('overdue');
-      default:
-        return t('pending');
-    }
-  };
-
-  // Group invoices by month for chart data
-  const getChartData = () => {
-    const months = getLocalizedMonths(currentLanguage);
-    let monthlyData = new Array(12).fill(0);
-    
-    if (invoices.length > 0) {
-      invoices.forEach(invoice => {
-        const date = new Date(invoice.date);
-        const month = date.getMonth();
-        monthlyData[month] += invoice.amount;
-      });
-    } else {
-      // Use mock data if no invoices
-      monthlyData = mockMonthlyData;
-    }
-    
-    // For bar chart, we'll select the last 6 months for better visibility
-    const now = new Date();
-    const currentMonth = now.getMonth();
-    const recentMonths = [];
-    const recentData = [];
-    
-    for (let i = 0; i < 6; i++) {
-      const monthIndex = (currentMonth - i + 12) % 12;
-      recentMonths.unshift(months[monthIndex]);
-      recentData.unshift(monthlyData[monthIndex]);
-    }
-    
-    return {
-      labels: recentMonths,
-      datasets: [
-        {
-          data: recentData,
-          colors: [
-            (opacity = 1) => isDarkMode ? `rgba(77, 217, 100, ${opacity})` : `rgba(0, 122, 255, ${opacity})`,
-            (opacity = 1) => isDarkMode ? `rgba(90, 230, 115, ${opacity})` : `rgba(30, 140, 255, ${opacity})`,
-            (opacity = 1) => isDarkMode ? `rgba(105, 245, 130, ${opacity})` : `rgba(60, 158, 255, ${opacity})`,
-            (opacity = 1) => isDarkMode ? `rgba(120, 255, 145, ${opacity})` : `rgba(90, 176, 255, ${opacity})`,
-            (opacity = 1) => isDarkMode ? `rgba(135, 255, 160, ${opacity})` : `rgba(120, 194, 255, ${opacity})`,
-            (opacity = 1) => isDarkMode ? `rgba(150, 255, 175, ${opacity})` : `rgba(150, 212, 255, ${opacity})`,
-          ]
-        }
-      ]
-    };
-  };
-
-  // Get currency symbol for Y-axis
-  const getCurrencySymbol = () => {
-    const config = getCurrencyConfig(currentCurrency);
-    return config.symbol;
-  };
-
-  const chartConfig = {
-    backgroundGradientFrom: isDarkMode ? '#1e1e1e' : '#ffffff',
-    backgroundGradientTo: isDarkMode ? '#2d2d2d' : '#f8f8f8',
-    backgroundGradientFromOpacity: 1,
-    backgroundGradientToOpacity: 1,
-    decimalPlaces: 0,
-    color: (opacity = 1) => isDarkMode ? 
-      `rgba(77, 217, 100, ${opacity})` : 
-      `rgba(0, 122, 255, ${opacity})`,
-    labelColor: (opacity = 1) => isDarkMode ? 
-      `rgba(255, 255, 255, ${opacity})` : 
-      `rgba(0, 0, 0, ${opacity})`,
-    style: {
-      borderRadius: 16
-    },
-    barPercentage: 0.7,
-    propsForBackgroundLines: {
-      strokeDasharray: '5, 5',
-      strokeWidth: 1,
-      stroke: isDarkMode ? '#333333' : '#ebebeb',
-    }
-  };
-
-  if (isLoading) {
+  const renderMessage = (message: Message) => {
     return (
-      <View style={[styles.loadingContainer, isDarkMode && styles.darkBackground]}>
-        <ActivityIndicator size="large" color="#007AFF" />
-        <Text style={[styles.loadingText, isDarkMode && styles.darkText]}>{t('loadingDashboard')}</Text>
+      <View 
+        style={[
+          styles.messageBubble, 
+          message.isUser ? styles.userBubble : styles.aiBubble,
+          message.isUser ? 
+            (isDarkMode ? styles.darkUserBubble : {}) : 
+            (isDarkMode ? styles.darkAiBubble : {})
+        ]}
+      >
+        {!message.isUser && (
+          <View style={styles.aiAvatarContainer}>
+            <Ionicons name="analytics" size={24} color={isDarkMode ? "#007AFF" : "#007AFF"} />
+          </View>
+        )}
+        <View style={styles.messageContent}>
+          <Text 
+            style={[
+              styles.messageText, 
+              message.isUser ? 
+                (isDarkMode ? styles.darkUserText : {}) : 
+                (isDarkMode ? styles.darkAiText : {})
+            ]}
+          >
+            {message.text}
+          </Text>
+        </View>
       </View>
     );
-  }
-
-  const getStatusCount = () => {
-    return {
-      paid: stats.paidInvoices,
-      pending: stats.pendingInvoices,
-      overdue: stats.overdueInvoices
-    };
   };
 
-  // Currency symbol for yAxis
-  const currencySymbol = getCurrencySymbol();
-
   return (
-    <ScrollView style={[styles.container, isDarkMode && styles.darkBackground]}>
-      {/* Key metrics */}
-      <View style={styles.statsContainer}>
-        <View style={[styles.statCard, isDarkMode && styles.darkCard]}>
-          <Text style={[styles.statValue, isDarkMode && styles.darkText]}>{stats.totalInvoices}</Text>
-          <Text style={[styles.statLabel, isDarkMode && styles.darkSecondaryText]}>{t('totalInvoices')}</Text>
-        </View>
-        <View style={[styles.statCard, isDarkMode && styles.darkCard]}>
-          <Text style={[styles.statValue, isDarkMode && styles.darkText]}>
-            {formattedAmounts.totalAmount || '...'}
-          </Text>
-          <Text style={[styles.statLabel, isDarkMode && styles.darkSecondaryText]}>{t('totalAmount')}</Text>
-        </View>
-        <View style={[styles.statCard, isDarkMode && styles.darkCard]}>
-          <Text style={[styles.statValue, isDarkMode && styles.darkText]}>
-            {formattedAmounts.avgAmount || '...'}
-          </Text>
-          <Text style={[styles.statLabel, isDarkMode && styles.darkSecondaryText]}>{t('avgInvoice')}</Text>
-        </View>
-      </View>
+    <KeyboardAvoidingView 
+      style={[styles.container, isDarkMode && styles.darkBackground]} 
+      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+      keyboardVerticalOffset={Platform.OS === 'ios' ? 90 : 0}
+    >
+      <ScrollView
+        ref={scrollViewRef}
+        style={styles.messagesContainer}
+        contentContainerStyle={styles.messagesContent}
+      >
+        {messages.map(message => (
+          <View key={message.id} style={styles.messageWrapper}>
+            {renderMessage(message)}
+          </View>
+        ))}
+        {isProcessing && (
+          <View style={[styles.messageBubble, styles.aiBubble, isDarkMode && styles.darkAiBubble]}>
+            <View style={styles.aiAvatarContainer}>
+              <Ionicons name="analytics" size={24} color={isDarkMode ? "#007AFF" : "#007AFF"} />
+            </View>
+            <View style={styles.typingIndicator}>
+              <View style={styles.typingDot} />
+              <View style={styles.typingDot} />
+              <View style={styles.typingDot} />
+            </View>
+          </View>
+        )}
+      </ScrollView>
 
-      {/* Status indicator cards */}
-      <View style={styles.statusCards}>
-        <View style={[styles.statusCard, { backgroundColor: '#4CD964' }]}>
-          <Text style={styles.statusCardValue}>{getStatusCount().paid}</Text>
-          <Text style={styles.statusCardLabel}>{t('paid')}</Text>
-        </View>
-        <View style={[styles.statusCard, { backgroundColor: '#FF9500' }]}>
-          <Text style={styles.statusCardValue}>{getStatusCount().pending}</Text>
-          <Text style={styles.statusCardLabel}>{t('pending')}</Text>
-        </View>
-        <View style={[styles.statusCard, { backgroundColor: '#FF3B30' }]}>
-          <Text style={styles.statusCardValue}>{getStatusCount().overdue}</Text>
-          <Text style={styles.statusCardLabel}>{t('overdue')}</Text>
-        </View>
-      </View>
-
-      {/* Monthly revenue chart */}
-      <View style={[styles.chartContainer, isDarkMode && styles.darkCard]}>
-        <Text style={[styles.sectionTitle, isDarkMode && styles.darkText]}>{t('monthlyRevenue')}</Text>
-        <View style={styles.chartWrapper}>
-          <BarChart
-            data={getChartData()}
-            width={screenWidth - 48}
-            height={280}
-            chartConfig={chartConfig}
-            style={styles.chart}
-            showBarTops={false}
-            withInnerLines={false}
-            showValuesOnTopOfBars={false}
-            fromZero={true}
-            yAxisLabel={currencySymbol}
-            yAxisSuffix=""
-            yAxisInterval={1}
-            segments={5}
+      <View style={[styles.inputContainer, isDarkMode && styles.darkInputContainer]}>
+        <TextInput
+          style={[styles.input, isDarkMode && styles.darkInput]}
+          placeholder={t('askAssistant')}
+          placeholderTextColor={isDarkMode ? '#777' : '#999'}
+          value={inputText}
+          onChangeText={setInputText}
+          multiline
+          returnKeyType="send"
+          onSubmitEditing={handleSend}
+          editable={!isProcessing}
+          blurOnSubmit={false}
+        />
+        <TouchableOpacity 
+          style={[styles.sendButton, !inputText.trim() && styles.disabledSendButton]} 
+          onPress={handleSend}
+          disabled={!inputText.trim() || isProcessing}
+        >
+          <Ionicons 
+            name="send" 
+            size={24} 
+            color={!inputText.trim() ? '#CCC' : '#007AFF'} 
           />
-        </View>
+        </TouchableOpacity>
       </View>
-    </ScrollView>
+    </KeyboardAvoidingView>
   );
 }
 
@@ -374,106 +199,117 @@ const styles = StyleSheet.create({
   darkBackground: {
     backgroundColor: '#121212',
   },
-  darkCard: {
-    backgroundColor: '#1e1e1e',
-    shadowColor: 'rgba(0, 0, 0, 0.3)',
-  },
-  darkText: {
-    color: '#f5f5f5',
-  },
-  darkSecondaryText: {
-    color: '#aaa',
-  },
-  loadingContainer: {
+  messagesContainer: {
     flex: 1,
+    padding: 16,
+  },
+  messagesContent: {
+    paddingBottom: 8,
+  },
+  messageWrapper: {
+    marginBottom: 16,
+  },
+  messageBubble: {
+    borderRadius: 18,
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    maxWidth: '80%',
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+  },
+  userBubble: {
+    backgroundColor: '#007AFF',
+    alignSelf: 'flex-end',
+  },
+  aiBubble: {
+    backgroundColor: '#E9E9EB',
+    alignSelf: 'flex-start',
+  },
+  darkUserBubble: {
+    backgroundColor: '#0A84FF',
+  },
+  darkAiBubble: {
+    backgroundColor: '#2C2C2E',
+  },
+  messageContent: {
+    flex: 1,
+  },
+  messageText: {
+    fontSize: 16,
+    lineHeight: 22,
+  },
+  userText: {
+    color: 'white',
+  },
+  aiText: {
+    color: '#000',
+  },
+  darkUserText: {
+    color: 'white',
+  },
+  darkAiText: {
+    color: '#FFF',
+  },
+  aiAvatarContainer: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: '#EFEFEF',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 8,
+  },
+  inputContainer: {
+    flexDirection: 'row',
+    padding: 12,
+    borderTopWidth: 1,
+    borderTopColor: '#E5E5E5',
+    backgroundColor: 'white',
+    alignItems: 'flex-end',
+  },
+  darkInputContainer: {
+    backgroundColor: '#1c1c1e',
+    borderTopColor: '#38383A',
+  },
+  input: {
+    flex: 1,
+    minHeight: 40,
+    maxHeight: 120,
+    borderWidth: 1,
+    borderColor: '#E5E5E5',
+    borderRadius: 20,
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    fontSize: 16,
+    backgroundColor: '#F5F5F5',
+  },
+  darkInput: {
+    backgroundColor: '#2C2C2E',
+    borderColor: '#38383A',
+    color: 'white',
+  },
+  sendButton: {
+    marginLeft: 8,
+    width: 40,
+    height: 40,
     justifyContent: 'center',
     alignItems: 'center',
   },
-  loadingText: {
-    marginTop: 12,
-    fontSize: 16,
-    color: '#666',
+  disabledSendButton: {
+    opacity: 0.5,
   },
-  statsContainer: {
+  typingIndicator: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
-    padding: 16,
-  },
-  statCard: {
-    backgroundColor: 'white',
-    borderRadius: 10,
-    padding: 16,
-    width: '32%',
     alignItems: 'center',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.1,
-    shadowRadius: 2,
-    elevation: 2,
-  },
-  statValue: {
-    fontSize: 16,
-    fontWeight: 'bold',
-    marginBottom: 4,
-    textAlign: 'center',
-  },
-  statLabel: {
-    fontSize: 12,
-    color: '#666',
-    textAlign: 'center',
-  },
-  statusCards: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
     paddingHorizontal: 16,
-    marginBottom: 16,
+    paddingVertical: 8,
   },
-  statusCard: {
-    width: '32%',
-    borderRadius: 10,
-    padding: 16,
-    alignItems: 'center',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.1,
-    shadowRadius: 2,
-    elevation: 2,
-  },
-  statusCardValue: {
-    fontSize: 20,
-    fontWeight: 'bold',
-    color: 'white',
-    marginBottom: 4,
-  },
-  statusCardLabel: {
-    fontSize: 14,
-    color: 'white',
-    fontWeight: '600',
-  },
-  chartContainer: {
-    backgroundColor: 'white',
-    borderRadius: 16,
-    padding: 16,
-    margin: 16,
-    marginBottom: 16,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
-  },
-  chartWrapper: {
-    alignItems: 'center',
-    marginVertical: 16,
-  },
-  sectionTitle: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    marginBottom: 16,
-  },
-  chart: {
-    borderRadius: 16,
-    marginVertical: 8,
-    paddingTop: 16,
+  typingDot: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    backgroundColor: '#8E8E93',
+    marginHorizontal: 2,
+    opacity: 0.7,
   },
 }); 

@@ -1,8 +1,9 @@
 import { Ionicons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { Stack, useRouter } from 'expo-router';
+import { useRouter } from 'expo-router';
 import React, { useState } from 'react';
-import { Alert, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { Alert, ScrollView, StyleSheet, Text, TouchableOpacity, View, useColorScheme } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 interface Template {
   id: string;
@@ -15,6 +16,8 @@ interface Template {
 
 export default function InvoiceTemplatesScreen() {
   const router = useRouter();
+  const colorScheme = useColorScheme();
+  const isDarkMode = colorScheme === 'dark';
   const [selectedTemplate, setSelectedTemplate] = useState<string>('template1');
   const [isSaving, setIsSaving] = useState(false);
 
@@ -104,16 +107,16 @@ export default function InvoiceTemplatesScreen() {
               <Text style={{ color: template.color, fontWeight: 'bold' }}>ABC</Text>
             </View>
             <View style={styles.previewCompanyDetails}>
-              <View style={styles.previewTextBlock} />
-              <View style={styles.previewTextBlock} />
+              <View style={[styles.previewTextBlock, isDarkMode && { backgroundColor: '#555' }]} />
+              <View style={[styles.previewTextBlock, isDarkMode && { backgroundColor: '#555' }]} />
             </View>
           </View>
           
           {/* Line items */}
           <View style={styles.previewLineItems}>
-            <View style={styles.previewLineItem} />
-            <View style={styles.previewLineItem} />
-            <View style={styles.previewLineItem} />
+            <View style={[styles.previewLineItem, isDarkMode && { backgroundColor: '#555' }]} />
+            <View style={[styles.previewLineItem, isDarkMode && { backgroundColor: '#555' }]} />
+            <View style={[styles.previewLineItem, isDarkMode && { backgroundColor: '#555' }]} />
           </View>
           
           {/* Total */}
@@ -126,20 +129,25 @@ export default function InvoiceTemplatesScreen() {
   };
 
   return (
-    <>
-      <Stack.Screen 
-        options={{
-          title: 'Invoice Templates',
-          headerLeft: () => (
-            <TouchableOpacity onPress={() => router.back()} style={{ marginLeft: 10 }}>
-              <Ionicons name="arrow-back" size={24} color="#007AFF" />
-            </TouchableOpacity>
-          ),
-        }}
-      />
+    <SafeAreaView style={[styles.container, isDarkMode && styles.darkBackground]} edges={['top', 'right', 'left']}>
+      <View style={styles.header}>
+        <TouchableOpacity 
+          style={styles.backButton} 
+          onPress={() => router.back()}
+        >
+          <Ionicons 
+            name="chevron-back" 
+            size={24} 
+            color={isDarkMode ? '#ffffff' : '#000000'} 
+          />
+          <Text style={[styles.backButtonText, isDarkMode && styles.darkText]}>Settings</Text>
+        </TouchableOpacity>
+        <Text style={[styles.title, isDarkMode && styles.darkText]}>Invoice Templates</Text>
+        <View style={{ width: 60 }} />
+      </View>
       
-      <ScrollView style={styles.container}>
-        <Text style={styles.description}>
+      <ScrollView style={styles.scrollContainer}>
+        <Text style={[styles.description, isDarkMode && { color: '#aaaaaa' }]}>
           Choose a template for your invoices. The selected template will be used when sharing or exporting invoices.
         </Text>
         
@@ -149,6 +157,7 @@ export default function InvoiceTemplatesScreen() {
               key={template.id}
               style={[
                 styles.templateCard,
+                isDarkMode && styles.darkCard,
                 selectedTemplate === template.id && styles.selectedTemplateCard,
                 selectedTemplate === template.id && { borderColor: template.color }
               ]}
@@ -157,8 +166,8 @@ export default function InvoiceTemplatesScreen() {
               {renderTemplatePreview(template)}
               
               <View style={styles.templateInfo}>
-                <Text style={styles.templateName}>{template.name}</Text>
-                <Text style={styles.templateDescription}>{template.description}</Text>
+                <Text style={[styles.templateName, isDarkMode && styles.darkText]}>{template.name}</Text>
+                <Text style={[styles.templateDescription, isDarkMode && { color: '#aaaaaa' }]}>{template.description}</Text>
               </View>
               {selectedTemplate === template.id && (
                 <Ionicons 
@@ -173,7 +182,10 @@ export default function InvoiceTemplatesScreen() {
         </View>
         
         <TouchableOpacity 
-          style={[styles.customizeButton]} 
+          style={[
+            styles.customizeButton,
+            isDarkMode && { backgroundColor: '#1e1e1e', borderColor: '#007AFF' }
+          ]} 
           onPress={() => Alert.alert('Coming Soon', 'Custom template creation will be available in a future update.')}
         >
           <Ionicons name="color-palette-outline" size={20} color="#007AFF" />
@@ -190,7 +202,7 @@ export default function InvoiceTemplatesScreen() {
           </Text>
         </TouchableOpacity>
       </ScrollView>
-    </>
+    </SafeAreaView>
   );
 }
 
@@ -198,6 +210,40 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#f5f5f5',
+  },
+  darkBackground: {
+    backgroundColor: '#121212',
+  },
+  darkText: {
+    color: '#ffffff',
+  },
+  darkCard: {
+    backgroundColor: '#1e1e1e',
+    shadowColor: 'rgba(0, 0, 0, 0.3)',
+  },
+  header: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 16,
+    paddingTop: 16,
+    paddingBottom: 8,
+  },
+  backButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  backButtonText: {
+    fontSize: 16,
+    fontWeight: '500',
+    marginLeft: 4,
+  },
+  title: {
+    fontSize: 18,
+    fontWeight: 'bold',
+  },
+  scrollContainer: {
+    flex: 1,
     padding: 16,
   },
   description: {
