@@ -1,26 +1,26 @@
 import { Ionicons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { Stack, useRouter } from 'expo-router';
+import { useRouter } from 'expo-router';
 import React, { useEffect, useState } from 'react';
 import { Alert, ScrollView, StyleSheet, Text, TouchableOpacity, useColorScheme, View } from 'react-native';
 
 type ThemeMode = 'light' | 'dark' | 'system';
-type TextSize = 'small' | 'medium' | 'large';
 type ColorScheme = 'blue' | 'green' | 'purple' | 'orange';
 
 interface ThemeSettings {
   themeMode: ThemeMode;
-  textSize: TextSize;
   colorScheme: ColorScheme;
+  useDynamicColors: boolean;
 }
 
 export default function ThemeSettingsScreen() {
   const router = useRouter();
   const systemColorScheme = useColorScheme();
+  const isDarkMode = systemColorScheme === 'dark';
   const [settings, setSettings] = useState<ThemeSettings>({
     themeMode: 'system',
-    textSize: 'medium',
     colorScheme: 'blue',
+    useDynamicColors: false,
   });
   const [isSaving, setIsSaving] = useState(false);
 
@@ -71,27 +71,23 @@ export default function ThemeSettingsScreen() {
     const isSelected = settings.themeMode === mode;
     return (
       <TouchableOpacity
-        style={[styles.optionCard, isSelected && styles.selectedOptionCard]}
+        style={[
+          styles.optionCard, 
+          isSelected && styles.selectedOptionCard,
+          isDarkMode && { backgroundColor: '#1e1e1e' }
+        ]}
         onPress={() => setSettings(prev => ({ ...prev, themeMode: mode }))}
       >
-        <Ionicons name={icon as any} size={24} color={isSelected ? '#007AFF' : '#8E8E93'} />
-        <Text style={[styles.optionLabel, isSelected && styles.selectedOptionLabel]}>{label}</Text>
-        {isSelected && (
-          <Ionicons name="checkmark-circle" size={22} color="#007AFF" style={styles.checkmark} />
-        )}
-      </TouchableOpacity>
-    );
-  };
-
-  const renderTextSizeOption = (size: TextSize, label: string, fontSize: number) => {
-    const isSelected = settings.textSize === size;
-    return (
-      <TouchableOpacity
-        style={[styles.optionCard, isSelected && styles.selectedOptionCard]}
-        onPress={() => setSettings(prev => ({ ...prev, textSize: size }))}
-      >
-        <Text style={{ fontSize: fontSize, color: isSelected ? '#007AFF' : '#8E8E93' }}>Aa</Text>
-        <Text style={[styles.optionLabel, isSelected && styles.selectedOptionLabel]}>{label}</Text>
+        <Ionicons 
+          name={icon as any} 
+          size={24} 
+          color={isSelected ? '#007AFF' : isDarkMode ? '#aaaaaa' : '#8E8E93'} 
+        />
+        <Text style={[
+          styles.optionLabel, 
+          isSelected && styles.selectedOptionLabel,
+          isDarkMode && !isSelected && { color: '#aaaaaa' }
+        ]}>{label}</Text>
         {isSelected && (
           <Ionicons name="checkmark-circle" size={22} color="#007AFF" style={styles.checkmark} />
         )}
@@ -104,11 +100,19 @@ export default function ThemeSettingsScreen() {
     const color = getColorForScheme(scheme);
     return (
       <TouchableOpacity
-        style={[styles.optionCard, isSelected && styles.selectedOptionCard]}
+        style={[
+          styles.optionCard, 
+          isSelected && styles.selectedOptionCard,
+          isDarkMode && { backgroundColor: '#1e1e1e' }
+        ]}
         onPress={() => setSettings(prev => ({ ...prev, colorScheme: scheme }))}
       >
         <View style={[styles.colorDot, { backgroundColor: color }]} />
-        <Text style={[styles.optionLabel, isSelected && styles.selectedOptionLabel]}>{label}</Text>
+        <Text style={[
+          styles.optionLabel, 
+          isSelected && styles.selectedOptionLabel,
+          isDarkMode && !isSelected && { color: '#aaaaaa' }
+        ]}>{label}</Text>
         {isSelected && (
           <Ionicons name="checkmark-circle" size={22} color="#007AFF" style={styles.checkmark} />
         )}
@@ -116,39 +120,75 @@ export default function ThemeSettingsScreen() {
     );
   };
 
+  const renderDynamicColorOption = () => {
+    return (
+      <View style={[
+        styles.toggleOption,
+        isDarkMode && { backgroundColor: '#1e1e1e', borderColor: '#333' }
+      ]}>
+        <View style={styles.toggleInfo}>
+          <Ionicons 
+            name="color-palette-outline" 
+            size={24} 
+            color={isDarkMode ? '#ffffff' : '#000000'} 
+            style={styles.toggleIcon} 
+          />
+          <View>
+            <Text style={[styles.toggleTitle, isDarkMode && styles.darkText]}>
+              Use Dynamic Colors
+            </Text>
+            <Text style={[styles.toggleDescription, isDarkMode && { color: '#aaaaaa' }]}>
+              Adjust app colors based on your device wallpaper
+            </Text>
+          </View>
+        </View>
+        <TouchableOpacity
+          style={[
+            styles.toggle, 
+            settings.useDynamicColors && styles.toggleActive
+          ]}
+          onPress={() => setSettings(prev => ({ ...prev, useDynamicColors: !prev.useDynamicColors }))}
+        >
+          <View style={[
+            styles.toggleKnob, 
+            settings.useDynamicColors && styles.toggleKnobActive
+          ]} />
+        </TouchableOpacity>
+      </View>
+    );
+  };
+
   return (
-    <>
-      <Stack.Screen 
-        options={{
-          title: 'Theme Settings',
-          headerLeft: () => (
-            <TouchableOpacity onPress={() => router.back()} style={{ marginLeft: 10 }}>
-              <Ionicons name="arrow-back" size={24} color="#007AFF" />
-            </TouchableOpacity>
-          ),
-        }}
-      />
+    <View style={[styles.container, isDarkMode && styles.darkBackground]}>
+      <View style={styles.header}>
+        <TouchableOpacity 
+          style={styles.backButton} 
+          onPress={() => router.back()}
+        >
+          <Ionicons 
+            name="chevron-back" 
+            size={24} 
+            color={isDarkMode ? '#ffffff' : '#000000'} 
+          />
+          <Text style={[styles.backButtonText, isDarkMode && styles.darkText]}>Settings</Text>
+        </TouchableOpacity>
+        <Text style={[styles.title, isDarkMode && styles.darkText]}>Theme</Text>
+        <View style={{ width: 60 }} />
+      </View>
       
-      <ScrollView style={styles.container}>
-        <Text style={styles.description}>
-          Customize the appearance of your app by selecting theme, text size, and color options.
+      <ScrollView style={styles.scrollContainer}>
+        <Text style={[styles.description, isDarkMode && { color: '#aaaaaa' }]}>
+          Customize the appearance of your app by selecting theme mode and color scheme.
         </Text>
         
-        <Text style={styles.sectionTitle}>Theme Mode</Text>
+        <Text style={[styles.sectionTitle, isDarkMode && styles.darkText]}>Theme Mode</Text>
         <View style={styles.optionsRow}>
           {renderThemeModeOption('light', 'Light', 'sunny-outline')}
           {renderThemeModeOption('dark', 'Dark', 'moon-outline')}
           {renderThemeModeOption('system', 'System', 'settings-outline')}
         </View>
         
-        <Text style={styles.sectionTitle}>Text Size</Text>
-        <View style={styles.optionsRow}>
-          {renderTextSizeOption('small', 'Small', 14)}
-          {renderTextSizeOption('medium', 'Medium', 18)}
-          {renderTextSizeOption('large', 'Large', 22)}
-        </View>
-        
-        <Text style={styles.sectionTitle}>Color Scheme</Text>
+        <Text style={[styles.sectionTitle, isDarkMode && styles.darkText]}>Color Scheme</Text>
         <View style={styles.optionsRow}>
           {renderColorSchemeOption('blue', 'Blue')}
           {renderColorSchemeOption('green', 'Green')}
@@ -156,14 +196,20 @@ export default function ThemeSettingsScreen() {
           {renderColorSchemeOption('orange', 'Orange')}
         </View>
         
-        <View style={styles.previewCard}>
-          <Text style={styles.previewTitle}>Preview</Text>
+        <Text style={[styles.sectionTitle, isDarkMode && styles.darkText]}>Advanced Options</Text>
+        {renderDynamicColorOption()}
+        
+        <View style={[
+          styles.previewCard, 
+          isDarkMode && { backgroundColor: '#1e1e1e', borderColor: '#333' }
+        ]}>
+          <Text style={[styles.previewTitle, isDarkMode && styles.darkText]}>Preview</Text>
           <View style={[
             styles.previewContent,
             { 
               backgroundColor: settings.themeMode === 'dark' || 
                 (settings.themeMode === 'system' && systemColorScheme === 'dark') 
-                ? '#1C1C1E' : '#FFFFFF'
+                ? '#333' : '#f5f5f5'
             }
           ]}>
             <Text style={[
@@ -172,11 +218,9 @@ export default function ThemeSettingsScreen() {
                 color: settings.themeMode === 'dark' || 
                   (settings.themeMode === 'system' && systemColorScheme === 'dark') 
                   ? '#FFFFFF' : '#000000',
-                fontSize: settings.textSize === 'small' ? 14 : 
-                          settings.textSize === 'medium' ? 16 : 18
               }
             ]}>
-              Sample invoice text
+              Sample content
             </Text>
             <View style={[
               styles.previewButton,
@@ -197,7 +241,7 @@ export default function ThemeSettingsScreen() {
           </Text>
         </TouchableOpacity>
       </ScrollView>
-    </>
+    </View>
   );
 }
 
@@ -205,48 +249,77 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#f5f5f5',
-    padding: 16,
+  },
+  darkBackground: {
+    backgroundColor: '#121212',
+  },
+  header: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 16,
+    paddingTop: 16,
+    paddingBottom: 8,
+  },
+  backButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  backButtonText: {
+    fontSize: 16,
+    fontWeight: '500',
+    marginLeft: 4,
+  },
+  darkText: {
+    color: '#ffffff',
+  },
+  title: {
+    fontSize: 18,
+    fontWeight: 'bold',
+  },
+  scrollContainer: {
+    flex: 1,
+    paddingHorizontal: 16,
   },
   description: {
-    fontSize: 16,
-    color: '#555',
-    marginBottom: 20,
-    lineHeight: 22,
+    fontSize: 14,
+    color: '#666',
+    marginVertical: 16,
   },
   sectionTitle: {
-    fontSize: 18,
+    fontSize: 16,
     fontWeight: '600',
-    marginTop: 20,
     marginBottom: 12,
+    marginTop: 24,
   },
   optionsRow: {
     flexDirection: 'row',
     flexWrap: 'wrap',
     justifyContent: 'space-between',
-    marginBottom: 10,
+    marginHorizontal: -5,
   },
   optionCard: {
-    width: '31%',
     backgroundColor: 'white',
-    borderRadius: 12,
+    borderRadius: 10,
     padding: 16,
+    width: '30%',
     alignItems: 'center',
     marginBottom: 10,
+    marginHorizontal: 5,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.1,
     shadowRadius: 2,
     elevation: 2,
-    borderWidth: 2,
-    borderColor: 'transparent',
   },
   selectedOptionCard: {
+    borderWidth: 2,
     borderColor: '#007AFF',
   },
   optionLabel: {
     marginTop: 8,
     fontSize: 14,
-    color: '#666',
+    color: '#8E8E93',
     textAlign: 'center',
   },
   selectedOptionLabel: {
@@ -263,34 +336,93 @@ const styles = StyleSheet.create({
     height: 24,
     borderRadius: 12,
   },
-  previewCard: {
-    marginTop: 20,
-    marginBottom: 20,
-  },
-  previewTitle: {
-    fontSize: 16,
-    fontWeight: '500',
-    marginBottom: 8,
-  },
-  previewContent: {
+  toggleOption: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
     backgroundColor: 'white',
-    borderRadius: 12,
-    padding: 20,
+    borderRadius: 10,
+    padding: 16,
+    marginBottom: 10,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.1,
     shadowRadius: 2,
     elevation: 2,
+    borderWidth: 1,
+    borderColor: '#f0f0f0',
+  },
+  toggleInfo: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    flex: 1,
+  },
+  toggleIcon: {
+    marginRight: 12,
+  },
+  toggleTitle: {
+    fontSize: 16,
+    fontWeight: '500',
+    marginBottom: 4,
+  },
+  toggleDescription: {
+    fontSize: 14,
+    color: '#8E8E93',
+  },
+  toggle: {
+    width: 50,
+    height: 30,
+    borderRadius: 15,
+    backgroundColor: '#e9e9ea',
+    padding: 2,
+  },
+  toggleActive: {
+    backgroundColor: '#34C759',
+  },
+  toggleKnob: {
+    width: 26,
+    height: 26,
+    borderRadius: 13,
+    backgroundColor: 'white',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.2,
+    shadowRadius: 1,
+    elevation: 2,
+  },
+  toggleKnobActive: {
+    transform: [{ translateX: 20 }],
+  },
+  previewCard: {
+    backgroundColor: 'white',
+    borderRadius: 10,
+    padding: 16,
+    marginTop: 24,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.1,
+    shadowRadius: 2,
+    elevation: 2,
+    borderWidth: 1,
+    borderColor: '#f0f0f0',
+  },
+  previewTitle: {
+    fontSize: 16,
+    fontWeight: '600',
+    marginBottom: 12,
+  },
+  previewContent: {
+    padding: 16,
+    borderRadius: 8,
+    alignItems: 'center',
   },
   previewText: {
-    marginBottom: 15,
+    marginBottom: 16,
   },
   previewButton: {
-    backgroundColor: '#007AFF',
-    borderRadius: 8,
-    padding: 10,
-    alignItems: 'center',
-    alignSelf: 'flex-start',
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: 6,
   },
   previewButtonText: {
     color: 'white',
@@ -298,17 +430,18 @@ const styles = StyleSheet.create({
   },
   saveButton: {
     backgroundColor: '#007AFF',
+    borderRadius: 10,
     padding: 16,
-    borderRadius: 8,
     alignItems: 'center',
-    marginBottom: 40,
+    marginTop: 32,
+    marginBottom: 24,
   },
   savingButton: {
-    backgroundColor: '#78B6FF',
+    backgroundColor: '#8E8E93',
   },
   saveButtonText: {
     color: 'white',
     fontWeight: '600',
     fontSize: 16,
-  },
+  }
 }); 

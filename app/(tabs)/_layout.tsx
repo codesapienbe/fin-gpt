@@ -1,10 +1,14 @@
 import { Ionicons } from '@expo/vector-icons';
 import { Tabs } from 'expo-router';
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import { useColorScheme } from 'react-native';
+
+import '../../services/i18n';
 
 export default function TabLayout() {
   const colorScheme = useColorScheme();
+  const { t } = useTranslation();
 
   return (
     <Tabs
@@ -23,20 +27,40 @@ export default function TabLayout() {
         },
       }}>
       <Tabs.Screen
+        name="home"
+        options={{
+          title: t('dashboard'),
+          headerTitle: t('dashboard'),
+          tabBarIcon: ({ color, size }) => (
+            <Ionicons name="home" size={size} color={color} />
+          ),
+        }}
+      />
+      <Tabs.Screen
         name="index"
         options={{
-          title: 'Invoices',
-          headerTitle: 'My Invoices',
+          title: t('invoices'),
+          headerTitle: t('myInvoices'),
           tabBarIcon: ({ color, size }) => (
             <Ionicons name="document-text" size={size} color={color} />
           ),
         }}
       />
       <Tabs.Screen
+        name="search"
+        options={{
+          title: t('search'),
+          headerTitle: t('searchInvoices'),
+          tabBarIcon: ({ color, size }) => (
+            <Ionicons name="search" size={size} color={color} />
+          ),
+        }}
+      />
+      <Tabs.Screen
         name="settings"
         options={{
-          title: 'Settings',
-          headerTitle: 'Settings',
+          title: t('settings'),
+          headerTitle: t('settings'),
           tabBarIcon: ({ color, size }) => (
             <Ionicons name="settings-outline" size={size} color={color} />
           ),

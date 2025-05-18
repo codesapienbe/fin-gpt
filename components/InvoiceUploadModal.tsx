@@ -14,6 +14,7 @@ interface InvoiceData {
   fileUri: string;
   fileType: string;
   uploadDate: string;
+  status?: 'paid' | 'pending' | 'overdue';
 }
 
 interface InvoiceUploadModalProps {
@@ -28,6 +29,7 @@ const InvoiceUploadModal: React.FC<InvoiceUploadModalProps> = ({ onClose, onUplo
   const [date, setDate] = useState(new Date().toISOString().split('T')[0]);
   const [selectedFile, setSelectedFile] = useState<DocumentPicker.DocumentPickerAsset | null>(null);
   const [isUploading, setIsUploading] = useState(false);
+  const [status, setStatus] = useState<'paid' | 'pending' | 'overdue'>('pending');
   
   const pickDocument = async () => {
     try {
@@ -81,6 +83,7 @@ const InvoiceUploadModal: React.FC<InvoiceUploadModalProps> = ({ onClose, onUplo
         fileUri: selectedFile.uri,
         fileType: selectedFile.mimeType || 'application/octet-stream',
         uploadDate: new Date().toISOString(),
+        status,
       };
       
       // Simulate network delay
@@ -94,6 +97,49 @@ const InvoiceUploadModal: React.FC<InvoiceUploadModalProps> = ({ onClose, onUplo
       setIsUploading(false);
     }
   };
+
+  const renderStatusOptions = () => (
+    <View style={styles.statusContainer}>
+      <TouchableOpacity
+        style={[
+          styles.statusOption,
+          status === 'paid' && styles.selectedStatus,
+        ]}
+        onPress={() => setStatus('paid')}
+      >
+        <Text style={[
+          styles.statusText,
+          status === 'paid' && styles.selectedStatusText,
+        ]}>Paid</Text>
+      </TouchableOpacity>
+      
+      <TouchableOpacity
+        style={[
+          styles.statusOption,
+          status === 'pending' && styles.selectedStatus,
+        ]}
+        onPress={() => setStatus('pending')}
+      >
+        <Text style={[
+          styles.statusText,
+          status === 'pending' && styles.selectedStatusText,
+        ]}>Pending</Text>
+      </TouchableOpacity>
+      
+      <TouchableOpacity
+        style={[
+          styles.statusOption,
+          status === 'overdue' && styles.selectedStatus,
+        ]}
+        onPress={() => setStatus('overdue')}
+      >
+        <Text style={[
+          styles.statusText,
+          status === 'overdue' && styles.selectedStatusText,
+        ]}>Overdue</Text>
+      </TouchableOpacity>
+    </View>
+  );
   
   return (
     <BlurView intensity={90} style={styles.container}>
@@ -137,6 +183,9 @@ const InvoiceUploadModal: React.FC<InvoiceUploadModalProps> = ({ onClose, onUplo
           value={date}
           onChangeText={setDate}
         />
+        
+        <Text style={styles.label}>Status</Text>
+        {renderStatusOptions()}
         
         <View style={styles.buttons}>
           <TouchableOpacity 
@@ -208,6 +257,37 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     padding: 12,
     marginBottom: 12,
+  },
+  label: {
+    fontSize: 16,
+    fontWeight: '500',
+    marginBottom: 8,
+    marginTop: 4,
+  },
+  statusContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginBottom: 16,
+  },
+  statusOption: {
+    flex: 1,
+    padding: 10,
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: '#ddd',
+    borderRadius: 8,
+    marginHorizontal: 4,
+  },
+  selectedStatus: {
+    backgroundColor: '#007AFF',
+    borderColor: '#007AFF',
+  },
+  statusText: {
+    color: '#666',
+  },
+  selectedStatusText: {
+    color: '#fff',
+    fontWeight: '500',
   },
   buttons: {
     flexDirection: 'row',

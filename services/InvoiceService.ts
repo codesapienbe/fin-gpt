@@ -10,6 +10,7 @@ export interface InvoiceData {
   fileUri: string;
   fileType: string;
   uploadDate: string;
+  status?: 'paid' | 'pending' | 'overdue';
 }
 
 const STORAGE_KEY = 'invoices';
@@ -43,6 +44,11 @@ export const InvoiceService = {
       const invoices = await InvoiceService.getInvoices();
       
       // Add new invoice to the array
+      // Default to pending status if not provided
+      if (!invoice.status) {
+        invoice.status = 'pending';
+      }
+      
       invoices.push(invoice);
       
       // Save updated array
@@ -89,6 +95,31 @@ export const InvoiceService = {
       return true;
     } catch (error) {
       console.error('Error deleting invoice', error);
+      throw error;
+    }
+  },
+
+  /**
+   * Update invoice status
+   * @param id Invoice ID
+   * @param status New status
+   * @returns Promise<InvoiceData | null> Updated invoice or null if not found
+   */
+  updateInvoiceStatus: async (id: string, status: 'paid' | 'pending' | 'overdue'): Promise<InvoiceData | null> => {
+    try {
+      const invoices = await InvoiceService.getInvoices();
+      const index = invoices.findIndex(inv => inv.id === id);
+      
+      if (index === -1) {
+        return null; // Invoice not found
+      }
+      
+      invoices[index].status = status;
+      await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(invoices));
+      
+      return invoices[index];
+    } catch (error) {
+      console.error('Error updating invoice status', error);
       throw error;
     }
   },

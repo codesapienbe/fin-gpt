@@ -14,6 +14,7 @@ interface InvoiceData {
   fileUri: string;
   fileType: string;
   uploadDate: string;
+  status?: 'paid' | 'pending' | 'overdue';
 }
 
 interface InvoiceItemProps {
@@ -38,6 +39,22 @@ const InvoiceItem: React.FC<InvoiceItemProps> = ({ invoice, onPress }) => {
       return 'image-outline' as const;
     }
     return 'document-outline' as const;
+  };
+  
+  const getStatusColor = () => {
+    switch (invoice.status) {
+      case 'paid':
+        return '#4CD964'; // Green
+      case 'overdue':
+        return '#FF3B30'; // Red
+      case 'pending':
+      default:
+        return '#FF9500'; // Orange
+    }
+  };
+  
+  const getStatusLabel = () => {
+    return invoice.status ? invoice.status.charAt(0).toUpperCase() + invoice.status.slice(1) : 'Pending';
   };
   
   const openFile = async () => {
@@ -80,6 +97,9 @@ const InvoiceItem: React.FC<InvoiceItemProps> = ({ invoice, onPress }) => {
         <Text style={styles.invoiceNumber}>Invoice #{invoice.invoiceNumber}</Text>
         <Text style={styles.clientName}>{invoice.clientName}</Text>
         <Text style={styles.date}>{invoice.date}</Text>
+        <View style={[styles.statusBadge, { backgroundColor: getStatusColor() }]}>
+          <Text style={styles.statusText}>{getStatusLabel()}</Text>
+        </View>
       </View>
       
       <View style={styles.rightContainer}>
@@ -140,6 +160,19 @@ const styles = StyleSheet.create({
   date: {
     fontSize: 12,
     color: '#999',
+    marginBottom: 6,
+  },
+  statusBadge: {
+    paddingHorizontal: 8,
+    paddingVertical: 2,
+    borderRadius: 12,
+    alignSelf: 'flex-start',
+    marginTop: 2,
+  },
+  statusText: {
+    color: 'white',
+    fontSize: 10,
+    fontWeight: '600',
   },
   rightContainer: {
     alignItems: 'flex-end',
