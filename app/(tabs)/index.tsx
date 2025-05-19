@@ -1,5 +1,6 @@
 import { Ionicons } from '@expo/vector-icons';
 import React, { useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Alert, FlatList, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
 import InvoiceItem from '../../components/InvoiceItem';
@@ -13,6 +14,7 @@ export default function HomeScreen() {
   const [selectedInvoice, setSelectedInvoice] = useState<InvoiceData | null>(null);
   const [isShareModalVisible, setIsShareModalVisible] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
+  const { t } = useTranslation();
 
   useEffect(() => {
     loadInvoices();
@@ -48,9 +50,11 @@ export default function HomeScreen() {
   const renderEmptyState = () => (
     <View style={styles.emptyContainer}>
       <Ionicons name="document-outline" size={64} color="#ccc" />
-      <Text style={styles.emptyTitle}>No Invoices Yet</Text>
+      <Text style={styles.emptyTitle}>
+        {t('noInvoicesYet')}
+      </Text>
       <Text style={styles.emptyMessage}>
-        Upload your first invoice by tapping the + button
+        {t('createInvoice')}
       </Text>
     </View>
   );
