@@ -1,5 +1,5 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { Currency } from './i18n';
+import { Currency, Language } from './i18n';
 
 // Storage keys
 const STORAGE_KEYS = {
@@ -13,24 +13,47 @@ const STORAGE_KEYS = {
   RECENT_SEARCHES: 'recent-searches',
   LAST_VIEWED_INVOICE: 'last-viewed-invoice',
   USER_PREFERENCES: 'user-preferences',
+  PROFILE_INFO: 'profile-info',
+  DEFAULT_SAVE_LOCATION: 'default-save-location',
+  TEXT_SETTINGS: 'text-settings',
+  COLOR_SCHEME: 'color-scheme',
 } as const;
 
 // Default values
 const DEFAULT_SETTINGS = {
   currency: 'EUR' as Currency,
-  language: 'en-US',
-  theme: 'light',
-  defaultInvoiceStatus: 'pending',
+  language: 'en-US' as Language,
+  theme: 'system' as 'light' | 'dark' | 'system',
+  defaultInvoiceStatus: 'pending' as 'paid' | 'pending' | 'overdue',
   notificationPreferences: {
     email: true,
     push: true,
     sms: false,
   },
+  profileInfo: {
+    name: '',
+    email: '',
+    phone: '',
+    address: '',
+    city: '',
+    country: '',
+    postalCode: '',
+    vatNumber: '',
+    website: '',
+    timezone: '',
+  },
+  defaultSaveLocation: 'local',
+  textSettings: {
+    fontSize: 'medium',
+    fontFamily: 'system',
+    lineSpacing: 'normal',
+  },
+  colorScheme: 'blue',
 } as const;
 
 export interface UserPreferences {
   currency: Currency;
-  language: string;
+  language: Language;
   theme: 'light' | 'dark' | 'system';
   defaultInvoiceStatus: 'paid' | 'pending' | 'overdue';
   notificationPreferences: {
@@ -38,6 +61,25 @@ export interface UserPreferences {
     push: boolean;
     sms: boolean;
   };
+  profileInfo: {
+    name: string;
+    email: string;
+    phone: string;
+    address: string;
+    city: string;
+    country: string;
+    postalCode: string;
+    vatNumber: string;
+    website: string;
+    timezone: string;
+  };
+  defaultSaveLocation: 'local' | 'cloud' | 'both';
+  textSettings: {
+    fontSize: 'small' | 'medium' | 'large';
+    fontFamily: 'system' | 'serif' | 'sans-serif';
+    lineSpacing: 'compact' | 'normal' | 'spacious';
+  };
+  colorScheme: 'blue' | 'green' | 'purple' | 'orange';
 }
 
 export interface RecentInvoice {
@@ -65,7 +107,113 @@ class SettingsService {
       await AsyncStorage.setItem(STORAGE_KEYS.USER_PREFERENCES, JSON.stringify(updated));
     } catch (error) {
       console.error('Error saving user preferences:', error);
+      throw error;
     }
+  }
+
+  // Get specific setting
+  static async getSetting<K extends keyof UserPreferences>(key: K): Promise<UserPreferences[K]> {
+    try {
+      const preferences = await this.getUserPreferences();
+      return preferences[key];
+    } catch (error) {
+      console.error(`Error getting setting ${key}:`, error);
+      return DEFAULT_SETTINGS[key];
+    }
+  }
+
+  // Save specific setting
+  static async saveSetting<K extends keyof UserPreferences>(
+    key: K,
+    value: UserPreferences[K]
+  ): Promise<void> {
+    try {
+      const preferences = await this.getUserPreferences();
+      preferences[key] = value;
+      await this.saveUserPreferences(preferences);
+    } catch (error) {
+      console.error(`Error saving setting ${key}:`, error);
+      throw error;
+    }
+  }
+
+  // Reset all settings to default
+  static async resetSettings(): Promise<void> {
+    try {
+      await AsyncStorage.setItem(STORAGE_KEYS.USER_PREFERENCES, JSON.stringify(DEFAULT_SETTINGS));
+    } catch (error) {
+      console.error('Error resetting settings:', error);
+      throw error;
+    }
+  }
+
+  // Get profile information
+  static async getProfileInfo(): Promise<UserPreferences['profileInfo']> {
+    return this.getSetting('profileInfo');
+  }
+
+  // Save profile information
+  static async saveProfileInfo(profileInfo: Partial<UserPreferences['profileInfo']>): Promise<void> {
+    const current = await this.getProfileInfo();
+    await this.saveSetting('profileInfo', { ...current, ...profileInfo });
+  }
+
+  // Get notification preferences
+  static async getNotificationPreferences(): Promise<UserPreferences['notificationPreferences']> {
+    return this.getSetting('notificationPreferences');
+  }
+
+  // Save notification preferences
+  static async saveNotificationPreferences(
+    preferences: Partial<UserPreferences['notificationPreferences']>
+  ): Promise<void> {
+    const current = await this.getNotificationPreferences();
+    await this.saveSetting('notificationPreferences', { ...current, ...preferences });
+  }
+
+  // Get text settings
+  static async getTextSettings(): Promise<UserPreferences['textSettings']> {
+    return this.getSetting('textSettings');
+  }
+
+  // Save text settings
+  static async saveTextSettings(
+    settings: Partial<UserPreferences['textSettings']>
+  ): Promise<void> {
+    const current = await this.getTextSettings();
+    await this.saveSetting('textSettings', { ...current, ...settings });
+  }
+
+  // Get theme
+  static async getTheme(): Promise<UserPreferences['theme']> {
+    return this.getSetting('theme');
+  }
+
+  // Save theme
+  static async saveTheme(theme: UserPreferences['theme']): Promise<void> {
+    await this.saveSetting('theme', theme);
+  }
+
+  // Get color scheme
+  static async getColorScheme(): Promise<UserPreferences['colorScheme']> {
+    return this.getSetting('colorScheme');
+  }
+
+  // Save color scheme
+  static async saveColorScheme(colorScheme: UserPreferences['colorScheme']): Promise<void> {
+    await this.saveSetting('colorScheme', colorScheme);
+  }
+
+  // Get default save location
+  static async getDefaultSaveLocation(): Promise<UserPreferences['defaultSaveLocation']> {
+    return this.getSetting('defaultSaveLocation');
+  }
+
+  // Save default save location
+  static async saveDefaultSaveLocation(
+    location: UserPreferences['defaultSaveLocation']
+  ): Promise<void> {
+    await this.saveSetting('defaultSaveLocation', location);
   }
 
   // Get recent invoices

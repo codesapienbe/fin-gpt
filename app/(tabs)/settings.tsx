@@ -5,7 +5,8 @@ import { useTranslation } from 'react-i18next';
 import { Alert, ScrollView, StyleSheet, Text, TouchableOpacity, View, useColorScheme } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-import { Currency, Language, getCurrencyConfig, getCurrentCurrency, getLanguageConfig } from '../../services/i18n';
+import { getCurrencyConfig, getLanguageConfig } from '../../services/i18n';
+import SettingsService, { UserPreferences } from '../../services/SettingsService';
 
 const SettingsItem = ({ 
   icon, 
@@ -39,32 +40,69 @@ export default function SettingsScreen() {
   const colorScheme = useColorScheme();
   const isDarkMode = colorScheme === 'dark';
   const { t, i18n } = useTranslation();
-  const [currentCurrency, setCurrentCurrency] = useState<Currency>('EUR');
+  const [settings, setSettings] = useState<UserPreferences | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    const loadCurrency = async () => {
-      const currency = await getCurrentCurrency();
-      setCurrentCurrency(currency);
-    };
-    
-    loadCurrency();
+    loadSettings();
   }, []);
 
-  const handleNotImplemented = () => {
+  const loadSettings = async () => {
+    try {
+      const userPreferences = await SettingsService.getUserPreferences();
+      setSettings(userPreferences);
+    } catch (error) {
+      console.error('Error loading settings:', error);
+      Alert.alert(t('settingsError'), t('settingsError'));
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleResetSettings = async () => {
     Alert.alert(
-      t('comingSoon'),
-      t('futureFeature'),
-      [{ text: 'OK' }]
+      t('resetSettings'),
+      t('resetSettingsConfirm'),
+      [
+        {
+          text: t('cancel'),
+          style: 'cancel',
+        },
+        {
+          text: t('reset'),
+          style: 'destructive',
+          onPress: async () => {
+            try {
+              await SettingsService.resetSettings();
+              await loadSettings();
+              Alert.alert(t('success'), t('resetSettingsSuccess'));
+            } catch (error) {
+              console.error('Error resetting settings:', error);
+              Alert.alert(t('error'), t('settingsError'));
+            }
+          },
+        },
+      ]
     );
   };
 
+  if (isLoading || !settings) {
+    return (
+      <SafeAreaView style={[styles.container, isDarkMode && styles.darkBackground]}>
+        <Text style={[styles.loadingText, isDarkMode && styles.darkText]}>
+          {t('loading')}...
+        </Text>
+      </SafeAreaView>
+    );
+  }
+
   // Get current language info
-  const currentLanguage = getLanguageConfig(i18n.language as Language);
+  const currentLanguage = getLanguageConfig(settings.language);
   // Get current currency info
-  const currencyInfo = getCurrencyConfig(currentCurrency);
+  const currencyInfo = getCurrencyConfig(settings.currency);
 
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: 'white' }}>
+    <SafeAreaView style={[styles.container, isDarkMode && styles.darkBackground]}>
       <ScrollView style={styles.scrollView}>
         <View style={styles.section}>
           <Text style={[styles.sectionTitle, isDarkMode && styles.darkSectionTitle]}>{t('account')}</Text>
@@ -86,39 +124,12 @@ export default function SettingsScreen() {
         </View>
 
         <View style={styles.section}>
-          <Text style={[styles.sectionTitle, isDarkMode && styles.darkSectionTitle]}>{t('invoices')}</Text>
-          <View style={[styles.card, isDarkMode && styles.darkCard]}>
-            <SettingsItem
-              icon="document-text-outline"
-              title={t('invoiceTemplates')}
-              description={t('invoiceTemplatesDescription')}
-              onPress={() => router.push('/invoice-templates')}
-            />
-            <View style={[styles.divider, isDarkMode && styles.darkDivider]} />
-            <SettingsItem
-              icon="folder-outline"
-              title={t('defaultSaveLocation')}
-              description={t('defaultSaveLocationDescription')}
-              onPress={handleNotImplemented}
-            />
-            <View style={[styles.divider, isDarkMode && styles.darkDivider]} />
-            <SettingsItem
-              icon="cloud-upload-outline"
-              title={t('cloudBackup')}
-              description={t('cloudBackupDescription')}
-              onPress={handleNotImplemented}
-              color="#5856D6"
-            />
-          </View>
-        </View>
-
-        <View style={styles.section}>
           <Text style={[styles.sectionTitle, isDarkMode && styles.darkSectionTitle]}>{t('appearance')}</Text>
           <View style={[styles.card, isDarkMode && styles.darkCard]}>
             <SettingsItem
               icon="color-palette-outline"
               title={t('theme')}
-              description={t('themeDescription')}
+              description={t(`theme.${settings.theme}`)}
               onPress={() => router.push('/theme-settings')}
             />
             <View style={[styles.divider, isDarkMode && styles.darkDivider]} />
@@ -148,30 +159,63 @@ export default function SettingsScreen() {
         </View>
 
         <View style={styles.section}>
+          <Text style={[styles.sectionTitle, isDarkMode && styles.darkSectionTitle]}>{t('notifications')}</Text>
+          <View style={[styles.card, isDarkMode && styles.darkCard]}>
+            <SettingsItem
+              icon="notifications-outline"
+              title={t('notificationPreferences')}
+              description={t('notificationPreferencesDescription')}
+              onPress={() => router.push('/(settings)/notification-settings')}
+            />
+          </View>
+        </View>
+
+        <View style={styles.section}>
+          <Text style={[styles.sectionTitle, isDarkMode && styles.darkSectionTitle]}>{t('storage')}</Text>
+          <View style={[styles.card, isDarkMode && styles.darkCard]}>
+            <SettingsItem
+              icon="save-outline"
+              title={t('defaultSaveLocation')}
+              description={t(`saveLocation.${settings.defaultSaveLocation}`)}
+              onPress={() => router.push('/(settings)/save-location-settings')}
+            />
+            <View style={[styles.divider, isDarkMode && styles.darkDivider]} />
+            <SettingsItem
+              icon="cloud-upload-outline"
+              title={t('cloudBackup')}
+              description={t('cloudBackupDescription')}
+              onPress={() => router.push('/(settings)/cloud-backup-settings')}
+            />
+          </View>
+        </View>
+
+        <View style={styles.section}>
           <Text style={[styles.sectionTitle, isDarkMode && styles.darkSectionTitle]}>{t('about')}</Text>
           <View style={[styles.card, isDarkMode && styles.darkCard]}>
             <SettingsItem
               icon="information-circle-outline"
               title={t('aboutApp')}
-              description="Version 1.0.0"
-              onPress={handleNotImplemented}
+              description={t('aboutAppDescription')}
+              onPress={() => router.push('/(settings)/about')}
             />
             <View style={[styles.divider, isDarkMode && styles.darkDivider]} />
             <SettingsItem
               icon="help-circle-outline"
               title={t('helpSupport')}
               description={t('helpSupportDescription')}
-              onPress={handleNotImplemented}
-              color="#34C759"
+              onPress={() => router.push('/(settings)/help-support')}
             />
           </View>
         </View>
 
-        <View style={styles.footer}>
-          <Text style={[styles.footerText, isDarkMode && styles.darkFooterText]}>
-            Invoice Management App v1.0.0
+        <TouchableOpacity
+          style={[styles.resetButton, isDarkMode && styles.darkResetButton]}
+          onPress={handleResetSettings}
+        >
+          <Text style={[styles.resetButtonText, isDarkMode && styles.darkResetButtonText]}>
+            {t('resetSettings')}
           </Text>
-        </View>
+        </TouchableOpacity>
       </ScrollView>
     </SafeAreaView>
   );
@@ -180,40 +224,35 @@ export default function SettingsScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f5f5f5',
+    backgroundColor: '#F2F2F7',
+  },
+  darkBackground: {
+    backgroundColor: '#000000',
   },
   scrollView: {
     flex: 1,
   },
-  darkBackground: {
-    backgroundColor: '#121212',
-  },
   section: {
-    marginBottom: 24,
+    marginTop: 20,
+    paddingHorizontal: 16,
   },
   sectionTitle: {
-    fontSize: 16,
+    fontSize: 13,
     fontWeight: '600',
     color: '#8E8E93',
-    marginHorizontal: 16,
     marginBottom: 8,
+    textTransform: 'uppercase',
   },
   darkSectionTitle: {
-    color: '#aaa',
+    color: '#8E8E93',
   },
   card: {
-    backgroundColor: 'white',
+    backgroundColor: '#FFFFFF',
     borderRadius: 10,
-    marginHorizontal: 16,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.05,
-    shadowRadius: 2,
-    elevation: 2,
+    overflow: 'hidden',
   },
   darkCard: {
-    backgroundColor: '#1e1e1e',
-    shadowColor: 'rgba(0, 0, 0, 0.3)',
+    backgroundColor: '#1C1C1E',
   },
   settingItem: {
     flexDirection: 'row',
@@ -221,42 +260,59 @@ const styles = StyleSheet.create({
     padding: 16,
   },
   iconContainer: {
-    width: 40,
-    height: 40,
+    width: 32,
+    height: 32,
     borderRadius: 8,
     justifyContent: 'center',
     alignItems: 'center',
-    marginRight: 16,
+    marginRight: 12,
   },
   settingTextContainer: {
     flex: 1,
   },
   settingTitle: {
-    fontSize: 16,
-    fontWeight: '500',
-    marginBottom: 4,
+    fontSize: 17,
+    fontWeight: '400',
+    color: '#000000',
   },
   settingDescription: {
-    fontSize: 14,
+    fontSize: 13,
     color: '#8E8E93',
+    marginTop: 2,
   },
   divider: {
     height: 1,
-    backgroundColor: '#F0F0F0',
-    marginLeft: 72,
+    backgroundColor: '#C6C6C8',
+    marginLeft: 60,
   },
   darkDivider: {
-    backgroundColor: '#333333',
+    backgroundColor: '#38383A',
   },
-  footer: {
+  loadingText: {
+    fontSize: 17,
+    color: '#000000',
+    textAlign: 'center',
+    marginTop: 20,
+  },
+  darkText: {
+    color: '#FFFFFF',
+  },
+  resetButton: {
+    margin: 20,
     padding: 16,
+    backgroundColor: '#FF3B30',
+    borderRadius: 10,
     alignItems: 'center',
   },
-  footerText: {
-    fontSize: 14,
-    color: '#8E8E93',
+  darkResetButton: {
+    backgroundColor: '#FF453A',
   },
-  darkFooterText: {
-    color: '#666666',
+  resetButtonText: {
+    color: '#FFFFFF',
+    fontSize: 17,
+    fontWeight: '600',
+  },
+  darkResetButtonText: {
+    color: '#FFFFFF',
   },
 }); 
