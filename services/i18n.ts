@@ -130,12 +130,6 @@ const resources = {
       'search': 'Search',
       'searchInvoices': 'Search Invoices',
       'settings': 'Settings',
-      'home': 'Home',
-      'assistant': 'AI Assistant',
-      'financialDashboard': 'Financial Dashboard',
-      'actions': 'Actions',
-      'scan': 'Scan',
-      'scanInvoice': 'Scan Invoice QR Code',
     
       // Dashboard
       'totalInvoices': 'Total Invoices',
@@ -152,20 +146,11 @@ const resources = {
       'createInvoice': 'Create Invoice',
       'loadingDashboard': 'Loading dashboard...',
       
-      // Invoice tab
+      // Invoice table
       'invoiceNumber': 'Invoice #',
       'client': 'Client',
       'date': 'Date',
       'amount': 'Amount',
-      'noResultsFound': 'No Results Found',
-      'noInvoicesMatchingQuery': 'We couldn\'t find any invoices matching "{query}"',
-      'createFirstInvoice': 'Upload your first invoice by tapping the + button',
-      'uploadInvoice': 'Upload Invoice',
-      'error': 'Error',
-      'success': 'Success',
-      'failedToLoadInvoices': 'Failed to load invoices',
-      'failedToSaveInvoice': 'Failed to save invoice',
-      'invoiceUploadedSuccessfully': 'Invoice uploaded successfully',
       
       // Language and Currency Settings
       'language': 'Language',
@@ -183,16 +168,6 @@ const resources = {
       'textDescription': 'Adjust text size, font, and spacing',
       'useDynamicColors': 'Use Dynamic Colors',
       'dynamicColorsDescription': 'Automatically adjust colors based on your device',
-      
-      // Assistant
-      'assistantWelcome': 'Hello! I\'m your financial assistant. How can I help you today with your invoices?',
-      'assistantInvoiceResponse': 'I can help you search for invoices, scan invoice QR codes, or create new invoice records. Would you like me to guide you through any of these processes?',
-      'assistantDashboardResponse': 'The financial dashboard provides an overview of your invoice status, monthly revenue trends, and key financial metrics. You can access it from the Dashboard tab.',
-      'assistantDefaultResponse': 'I\'m here to help with your invoicing needs. You can ask me about creating, finding, or managing invoices, or get insights about your financial data.',
-      'askAssistant': 'Ask me anything about your invoices...',
-      
-      // Actions
-      'actionsHelpText': 'Tap the button below to search for invoices or scan invoice QR codes',
       
       // Months
       'jan': 'Jan',
@@ -218,13 +193,7 @@ const resources = {
       'search': 'Zoeken',
       'searchInvoices': 'Facturen Zoeken',
       'settings': 'Instellingen',
-      'home': 'Home',
-      'assistant': 'AI Assistent',
-      'financialDashboard': 'Financieel Dashboard',
-      'actions': 'Acties',
-      'scan': 'Scannen',
-      'scanInvoice': 'Scan Factuur QR-code',
-      
+    
       // Dashboard
       'totalInvoices': 'Totaal Facturen',
       'totalAmount': 'Totaalbedrag',
@@ -240,30 +209,11 @@ const resources = {
       'createInvoice': 'Factuur Aanmaken',
       'loadingDashboard': 'Dashboard laden...',
       
-      // Invoice tab
+      // Invoice table
       'invoiceNumber': 'Factuurnr.',
       'client': 'Klant',
       'date': 'Datum',
       'amount': 'Bedrag',
-      'noResultsFound': 'Geen Resultaten Gevonden',
-      'noInvoicesMatchingQuery': 'We konden geen facturen vinden die overeenkomen met "{query}"',
-      'createFirstInvoice': 'Upload je eerste factuur door op de + knop te tikken',
-      'uploadInvoice': 'Factuur Uploaden',
-      'error': 'Fout',
-      'success': 'Succes',
-      'failedToLoadInvoices': 'Kon facturen niet laden',
-      'failedToSaveInvoice': 'Kon factuur niet opslaan',
-      'invoiceUploadedSuccessfully': 'Factuur succesvol geüpload',
-      
-      // Assistant
-      'assistantWelcome': 'Hallo! Ik ben je financiële assistent. Hoe kan ik je vandaag helpen met je facturen?',
-      'assistantInvoiceResponse': 'Ik kan je helpen bij het zoeken naar facturen, het scannen van factuur QR-codes of het maken van nieuwe factuurrecords. Wil je dat ik je door een van deze processen leid?',
-      'assistantDashboardResponse': 'Het financiële dashboard geeft een overzicht van je factuurstatus, maandelijkse omzettrends en belangrijke financiële gegevens. Je kunt het bekijken via het Dashboard-tabblad.',
-      'assistantDefaultResponse': 'Ik ben er om je te helpen met je factureringsbehoeften. Je kunt me vragen stellen over het maken, vinden of beheren van facturen, of inzichten krijgen over je financiële gegevens.',
-      'askAssistant': 'Vraag me iets over je facturen...',
-      
-      // Actions
-      'actionsHelpText': 'Tik op de knop hieronder om facturen te zoeken of factuur QR-codes te scannen',
       
       // Months
       'jan': 'Jan',
@@ -289,13 +239,7 @@ const resources = {
       'search': 'Rechercher',
       'searchInvoices': 'Rechercher des Factures',
       'settings': 'Paramètres',
-      'home': 'Accueil',
-      'assistant': 'Assistant IA',
-      'financialDashboard': 'Tableau de Bord Financier',
-      'actions': 'Actions',
-      'scan': 'Scanner',
-      'scanInvoice': 'Scanner le Code QR de la Facture',
-      
+    
       // Dashboard
       'totalInvoices': 'Total des factures',
       'totalAmount': 'Montant total',
@@ -311,30 +255,11 @@ const resources = {
       'createInvoice': 'Créer une facture',
       'loadingDashboard': 'Chargement du tableau de bord...',
       
-      // Invoice tab
+      // Invoice table
       'invoiceNumber': 'Facture n°',
       'client': 'Client',
       'date': 'Date',
       'amount': 'Montant',
-      'noResultsFound': 'Aucun Résultat Trouvé',
-      'noInvoicesMatchingQuery': 'Nous n\'avons trouvé aucune facture correspondant à "{query}"',
-      'createFirstInvoice': 'Téléchargez votre première facture en appuyant sur le bouton +',
-      'uploadInvoice': 'Télécharger une Facture',
-      'error': 'Erreur',
-      'success': 'Succès',
-      'failedToLoadInvoices': 'Échec du chargement des factures',
-      'failedToSaveInvoice': 'Échec de l\'enregistrement de la facture',
-      'invoiceUploadedSuccessfully': 'Facture téléchargée avec succès',
-      
-      // Assistant
-      'assistantWelcome': 'Bonjour! Je suis votre assistant financier. Comment puis-je vous aider aujourd\'hui avec vos factures?',
-      'assistantInvoiceResponse': 'Je peux vous aider à rechercher des factures, à scanner des codes QR de facture ou à créer de nouveaux enregistrements de facture. Souhaitez-vous que je vous guide dans l\'un de ces processus?',
-      'assistantDashboardResponse': 'Le tableau de bord financier offre une vue d\'ensemble de l\'état de vos factures, des tendances des revenus mensuels et des indicateurs financiers clés. Vous pouvez y accéder depuis l\'onglet Tableau de bord.',
-      'assistantDefaultResponse': 'Je suis là pour vous aider avec vos besoins de facturation. Vous pouvez me poser des questions sur la création, la recherche ou la gestion des factures, ou obtenir des informations sur vos données financières.',
-      'askAssistant': 'Posez-moi n\'importe quelle question sur vos factures...',
-      
-      // Actions
-      'actionsHelpText': 'Appuyez sur le bouton ci-dessous pour rechercher des factures ou scanner des codes QR de facture',
       
       // Months
       'jan': 'Jan',
@@ -357,16 +282,10 @@ const resources = {
       'dashboard': 'Ana Sayfa',
       'invoices': 'Faturalar',
       'myInvoices': 'Faturalarım',
-      'search': 'Ara',
+      'search': 'Arama',
       'searchInvoices': 'Fatura Ara',
       'settings': 'Ayarlar',
-      'home': 'Ana Sayfa',
-      'assistant': 'Yapay Zeka Asistanı',
-      'financialDashboard': 'Finansal Gösterge Paneli',
-      'actions': 'İşlemler',
-      'scan': 'Tara',
-      'scanInvoice': 'Fatura QR Kodunu Tara',
-      
+    
       // Dashboard
       'totalInvoices': 'Toplam Fatura',
       'totalAmount': 'Toplam Tutar',
@@ -382,30 +301,11 @@ const resources = {
       'createInvoice': 'Fatura Oluştur',
       'loadingDashboard': 'Kontrol paneli yükleniyor...',
       
-      // Invoice tab
+      // Invoice table
       'invoiceNumber': 'Fatura No',
       'client': 'Müşteri',
       'date': 'Tarih',
       'amount': 'Tutar',
-      'noResultsFound': 'Sonuç Bulunamadı',
-      'noInvoicesMatchingQuery': '"{query}" ile eşleşen fatura bulamadık',
-      'createFirstInvoice': '+ düğmesine dokunarak ilk faturanızı yükleyin',
-      'uploadInvoice': 'Fatura Yükle',
-      'error': 'Hata',
-      'success': 'Başarılı',
-      'failedToLoadInvoices': 'Faturalar yüklenemedi',
-      'failedToSaveInvoice': 'Fatura kaydedilemedi',
-      'invoiceUploadedSuccessfully': 'Fatura başarıyla yüklendi',
-      
-      // Assistant
-      'assistantWelcome': 'Merhaba! Ben senin finans asistanınım. Bugün faturalarınla ilgili nasıl yardımcı olabilirim?',
-      'assistantInvoiceResponse': 'Fatura aramanıza, fatura QR kodlarını taramanıza veya yeni fatura kayıtları oluşturmanıza yardımcı olabilirim. Bu işlemlerden herhangi birinde size rehberlik etmemi ister misiniz?',
-      'assistantDashboardResponse': 'Finansal gösterge paneli, fatura durumunuzun, aylık gelir eğilimlerinizin ve önemli finansal ölçütlerin genel bir görünümünü sunar. Buna Gösterge Paneli sekmesinden erişebilirsiniz.',
-      'assistantDefaultResponse': 'Faturalama ihtiyaçlarınızda size yardımcı olmak için buradayım. Bana fatura oluşturma, bulma veya yönetme hakkında sorular sorabilir veya mali verileriniz hakkında bilgi alabilirsiniz.',
-      'askAssistant': 'Faturalarınız hakkında herhangi bir şey sorun...',
-      
-      // Actions
-      'actionsHelpText': 'Fatura aramak veya fatura QR kodlarını taramak için aşağıdaki düğmeye dokunun',
       
       // Months
       'jan': 'Oca',
