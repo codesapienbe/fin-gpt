@@ -1,14 +1,25 @@
 import { Ionicons } from '@expo/vector-icons';
-import { Tabs } from 'expo-router';
+import { Tabs, useRouter } from 'expo-router';
 import React from 'react';
 import { useTranslation } from 'react-i18next';
-import { useColorScheme } from 'react-native';
+import { Alert, TouchableOpacity, useColorScheme } from 'react-native';
 
+import { authService } from '../../services/auth';
 import '../../services/i18n';
 
 export default function TabLayout() {
   const colorScheme = useColorScheme();
   const { t } = useTranslation();
+  const router = useRouter();
+
+  const handleLogout = async () => {
+    try {
+      await authService.logout();
+      router.replace('/(auth)/login');
+    } catch (error) {
+      Alert.alert(t('error'), t('logoutError'));
+    }
+  };
 
   return (
     <Tabs
@@ -25,6 +36,18 @@ export default function TabLayout() {
         tabBarStyle: {
           backgroundColor: colorScheme === 'dark' ? '#1c1c1e' : '#ffffff',
         },
+        headerRight: () => (
+          <TouchableOpacity
+            onPress={handleLogout}
+            style={{ marginRight: 16 }}
+          >
+            <Ionicons
+              name="log-out-outline"
+              size={24}
+              color={colorScheme === 'dark' ? '#ffffff' : '#000000'}
+            />
+          </TouchableOpacity>
+        ),
       }}>
       <Tabs.Screen
         name="home"

@@ -263,6 +263,16 @@ const resources = {
       'oct': 'Oct',
       'nov': 'Nov',
       'dec': 'Dec',
+      
+      // Authentication
+      'forgotPassword': 'Forgot Password',
+      'resetPasswordSubtitle': 'Enter your email address and we will send you instructions to reset your password.',
+      'resetPassword': 'Reset Password',
+      'resetPasswordSuccess': 'Password reset instructions have been sent to your email.',
+      'resetPasswordError': 'Failed to send reset instructions. Please try again.',
+      'resetPasswordErrorEmptyEmail': 'Please enter your email address.',
+      'sending': 'Sending...',
+      'backToLogin': 'Back to Login',
     }
   },
   'nl-BE': {
@@ -407,6 +417,16 @@ const resources = {
       'oct': 'Okt',
       'nov': 'Nov',
       'dec': 'Dec',
+      
+      // Authentication
+      'forgotPassword': 'Wachtwoord vergeten',
+      'resetPasswordSubtitle': 'Voer je e-mailadres in en we sturen je instructies om je wachtwoord te resetten.',
+      'resetPassword': 'Wachtwoord resetten',
+      'resetPasswordSuccess': 'Instructies voor het resetten van je wachtwoord zijn naar je e-mail gestuurd.',
+      'resetPasswordError': 'Het versturen van de reset-instructies is mislukt. Probeer het opnieuw.',
+      'resetPasswordErrorEmptyEmail': 'Voer je e-mailadres in.',
+      'sending': 'Verzenden...',
+      'backToLogin': 'Terug naar inloggen',
     }
   },
   'fr-BE': {
@@ -551,6 +571,16 @@ const resources = {
       'oct': 'Oct',
       'nov': 'Nov',
       'dec': 'Déc',
+      
+      // Authentication
+      'forgotPassword': 'Mot de passe oublié',
+      'resetPasswordSubtitle': 'Entrez votre adresse e-mail et nous vous enverrons les instructions pour réinitialiser votre mot de passe.',
+      'resetPassword': 'Réinitialiser le mot de passe',
+      'resetPasswordSuccess': 'Les instructions de réinitialisation ont été envoyées à votre e-mail.',
+      'resetPasswordError': 'Échec de l\'envoi des instructions. Veuillez réessayer.',
+      'resetPasswordErrorEmptyEmail': 'Veuillez entrer votre adresse e-mail.',
+      'sending': 'Envoi en cours...',
+      'backToLogin': 'Retour à la connexion',
     }
   },
   'tr-TR': {
@@ -695,6 +725,16 @@ const resources = {
       'oct': 'Eki',
       'nov': 'Kas',
       'dec': 'Ara',
+      
+      // Authentication
+      'forgotPassword': 'Şifremi Unuttum',
+      'resetPasswordSubtitle': 'E-posta adresinizi girin, şifrenizi sıfırlamak için talimatları göndereceğiz.',
+      'resetPassword': 'Şifreyi Sıfırla',
+      'resetPasswordSuccess': 'Şifre sıfırlama talimatları e-posta adresinize gönderildi.',
+      'resetPasswordError': 'Talimatlar gönderilemedi. Lütfen tekrar deneyin.',
+      'resetPasswordErrorEmptyEmail': 'Lütfen e-posta adresinizi girin.',
+      'sending': 'Gönderiliyor...',
+      'backToLogin': 'Girişe Dön',
     }
   }
 };
