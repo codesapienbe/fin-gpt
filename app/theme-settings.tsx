@@ -2,7 +2,8 @@ import { Ionicons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useRouter } from 'expo-router';
 import React, { useEffect, useState } from 'react';
-import { Alert, ScrollView, StyleSheet, Text, TouchableOpacity, useColorScheme, View } from 'react-native';
+import { useTranslation } from 'react-i18next';
+import { Alert, ScrollView, StyleSheet, Switch, Text, TouchableOpacity, View, useColorScheme } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 type ThemeMode = 'light' | 'dark' | 'system';
@@ -18,10 +19,11 @@ export default function ThemeSettingsScreen() {
   const router = useRouter();
   const systemColorScheme = useColorScheme();
   const isDarkMode = systemColorScheme === 'dark';
+  const { t } = useTranslation();
   const [settings, setSettings] = useState<ThemeSettings>({
     themeMode: 'system',
     colorScheme: 'blue',
-    useDynamicColors: false,
+    useDynamicColors: true,
   });
   const [isSaving, setIsSaving] = useState(false);
 
@@ -50,21 +52,22 @@ export default function ThemeSettingsScreen() {
       // Simulate network delay for demo
       await new Promise(resolve => setTimeout(resolve, 1000));
       
-      Alert.alert('Success', 'Theme settings saved successfully');
+      Alert.alert('Success', t('settingsSaved'));
     } catch (error) {
-      Alert.alert('Error', 'Failed to save theme settings');
+      Alert.alert('Error', t('settingsError'));
       console.error(error);
     } finally {
       setIsSaving(false);
     }
   };
 
-  const getColorForScheme = (scheme: ColorScheme) => {
+  const getColorForScheme = (scheme: string) => {
     switch (scheme) {
       case 'blue': return '#007AFF';
       case 'green': return '#34C759';
       case 'purple': return '#5856D6';
       case 'orange': return '#FF9500';
+      default: return '#007AFF';
     }
   };
 
@@ -131,30 +134,24 @@ export default function ThemeSettingsScreen() {
           <Ionicons 
             name="color-palette-outline" 
             size={24} 
-            color={isDarkMode ? '#ffffff' : '#000000'} 
+            color={isDarkMode ? '#aaaaaa' : '#8E8E93'} 
             style={styles.toggleIcon} 
           />
           <View>
-            <Text style={[styles.toggleTitle, isDarkMode && styles.darkText]}>
-              Use Dynamic Colors
+            <Text style={[styles.toggleTitle, isDarkMode && { color: '#ffffff' }]}>
+              {t('useDynamicColors')}
             </Text>
             <Text style={[styles.toggleDescription, isDarkMode && { color: '#aaaaaa' }]}>
-              Adjust app colors based on your device wallpaper
+              {t('dynamicColorsDescription')}
             </Text>
           </View>
         </View>
-        <TouchableOpacity
-          style={[
-            styles.toggle, 
-            settings.useDynamicColors && styles.toggleActive
-          ]}
-          onPress={() => setSettings(prev => ({ ...prev, useDynamicColors: !prev.useDynamicColors }))}
-        >
-          <View style={[
-            styles.toggleKnob, 
-            settings.useDynamicColors && styles.toggleKnobActive
-          ]} />
-        </TouchableOpacity>
+        <Switch
+          value={settings.useDynamicColors}
+          onValueChange={(value) => setSettings(prev => ({ ...prev, useDynamicColors: value }))}
+          trackColor={{ false: '#D1D1D6', true: '#4CD964' }}
+          thumbColor="#FFFFFF"
+        />
       </View>
     );
   };
@@ -171,40 +168,40 @@ export default function ThemeSettingsScreen() {
             size={24} 
             color={isDarkMode ? '#ffffff' : '#000000'} 
           />
-          <Text style={[styles.backButtonText, isDarkMode && styles.darkText]}>Settings</Text>
+          <Text style={[styles.backButtonText, isDarkMode && styles.darkText]}>{t('settings')}</Text>
         </TouchableOpacity>
-        <Text style={[styles.title, isDarkMode && styles.darkText]}>Theme</Text>
+        <Text style={[styles.title, isDarkMode && styles.darkText]}>{t('theme')}</Text>
         <View style={{ width: 60 }} />
       </View>
       
       <ScrollView style={styles.scrollContainer}>
         <Text style={[styles.description, isDarkMode && { color: '#aaaaaa' }]}>
-          Customize the appearance of your app by selecting theme mode and color scheme.
+          {t('themeDescription')}
         </Text>
         
-        <Text style={[styles.sectionTitle, isDarkMode && styles.darkText]}>Theme Mode</Text>
+        <Text style={[styles.sectionTitle, isDarkMode && styles.darkText]}>{t('themeMode')}</Text>
         <View style={styles.optionsRow}>
-          {renderThemeModeOption('light', 'Light', 'sunny-outline')}
-          {renderThemeModeOption('dark', 'Dark', 'moon-outline')}
-          {renderThemeModeOption('system', 'System', 'settings-outline')}
+          {renderThemeModeOption('light', t('light'), 'sunny-outline')}
+          {renderThemeModeOption('dark', t('dark'), 'moon-outline')}
+          {renderThemeModeOption('system', t('system'), 'settings-outline')}
         </View>
         
-        <Text style={[styles.sectionTitle, isDarkMode && styles.darkText]}>Color Scheme</Text>
+        <Text style={[styles.sectionTitle, isDarkMode && styles.darkText]}>{t('colorScheme')}</Text>
         <View style={styles.optionsRow}>
-          {renderColorSchemeOption('blue', 'Blue')}
-          {renderColorSchemeOption('green', 'Green')}
-          {renderColorSchemeOption('purple', 'Purple')}
-          {renderColorSchemeOption('orange', 'Orange')}
+          {renderColorSchemeOption('blue', t('blue'))}
+          {renderColorSchemeOption('green', t('green'))}
+          {renderColorSchemeOption('purple', t('purple'))}
+          {renderColorSchemeOption('orange', t('orange'))}
         </View>
         
-        <Text style={[styles.sectionTitle, isDarkMode && styles.darkText]}>Advanced Options</Text>
+        <Text style={[styles.sectionTitle, isDarkMode && styles.darkText]}>{t('advancedOptions')}</Text>
         {renderDynamicColorOption()}
         
         <View style={[
           styles.previewCard, 
           isDarkMode && { backgroundColor: '#1e1e1e', borderColor: '#333' }
         ]}>
-          <Text style={[styles.previewTitle, isDarkMode && styles.darkText]}>Preview</Text>
+          <Text style={[styles.previewTitle, isDarkMode && styles.darkText]}>{t('preview')}</Text>
           <View style={[
             styles.previewContent,
             { 
@@ -221,13 +218,13 @@ export default function ThemeSettingsScreen() {
                   ? '#FFFFFF' : '#000000',
               }
             ]}>
-              Sample content
+              {t('sampleContent')}
             </Text>
             <View style={[
               styles.previewButton,
               { backgroundColor: getColorForScheme(settings.colorScheme) }
             ]}>
-              <Text style={styles.previewButtonText}>Button</Text>
+              <Text style={styles.previewButtonText}>{t('button')}</Text>
             </View>
           </View>
         </View>
@@ -238,7 +235,7 @@ export default function ThemeSettingsScreen() {
           disabled={isSaving}
         >
           <Text style={styles.saveButtonText}>
-            {isSaving ? 'Saving...' : 'Save Settings'}
+            {isSaving ? t('saving') : t('saveSettings')}
           </Text>
         </TouchableOpacity>
       </ScrollView>
@@ -370,30 +367,6 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: '#8E8E93',
   },
-  toggle: {
-    width: 50,
-    height: 30,
-    borderRadius: 15,
-    backgroundColor: '#e9e9ea',
-    padding: 2,
-  },
-  toggleActive: {
-    backgroundColor: '#34C759',
-  },
-  toggleKnob: {
-    width: 26,
-    height: 26,
-    borderRadius: 13,
-    backgroundColor: 'white',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.2,
-    shadowRadius: 1,
-    elevation: 2,
-  },
-  toggleKnobActive: {
-    transform: [{ translateX: 20 }],
-  },
   previewCard: {
     backgroundColor: 'white',
     borderRadius: 10,
@@ -418,16 +391,17 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   previewText: {
-    marginBottom: 16,
+    lineHeight: 22,
   },
   previewButton: {
-    paddingHorizontal: 16,
+    marginTop: 16,
     paddingVertical: 8,
-    borderRadius: 6,
+    paddingHorizontal: 16,
+    borderRadius: 8,
   },
   previewButtonText: {
     color: 'white',
-    fontWeight: '500',
+    fontWeight: '600',
   },
   saveButton: {
     backgroundColor: '#007AFF',

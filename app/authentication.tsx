@@ -2,6 +2,7 @@ import { Ionicons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useRouter } from 'expo-router';
 import React, { useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Alert, ScrollView, StyleSheet, Switch, Text, TouchableOpacity, View, useColorScheme } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
@@ -17,6 +18,7 @@ export default function AuthenticationScreen() {
   const router = useRouter();
   const colorScheme = useColorScheme();
   const isDarkMode = colorScheme === 'dark';
+  const { t } = useTranslation();
   const [settings, setSettings] = useState<AuthSettings>({
     biometricEnabled: false,
     pinEnabled: false,
@@ -51,9 +53,9 @@ export default function AuthenticationScreen() {
       // Simulate network delay for demo
       await new Promise(resolve => setTimeout(resolve, 1000));
       
-      Alert.alert('Success', 'Authentication settings saved successfully');
+      Alert.alert('Success', t('settingsSaved'));
     } catch (error) {
-      Alert.alert('Error', 'Failed to save authentication settings');
+      Alert.alert('Error', t('settingsError'));
       console.error(error);
     } finally {
       setIsSaving(false);
@@ -69,8 +71,8 @@ export default function AuthenticationScreen() {
     // If turning on PIN, simulate PIN setup
     if (option === 'pinEnabled' && value) {
       Alert.alert(
-        'Set PIN Code',
-        'In a full implementation, a PIN setup flow would appear here.',
+        t('changePin'),
+        t('futureFeature'),
         [{ text: 'OK' }]
       );
     }
@@ -78,8 +80,8 @@ export default function AuthenticationScreen() {
     // If turning on biometrics, simulate permission request
     if (option === 'biometricEnabled' && value) {
       Alert.alert(
-        'Enable Biometric Authentication',
-        'In a full implementation, the app would request biometric authentication permissions here.',
+        t('enableBiometric'),
+        t('futureFeature'),
         [{ text: 'OK' }]
       );
     }
@@ -87,13 +89,13 @@ export default function AuthenticationScreen() {
 
   const handleSelectAutoLockTime = () => {
     Alert.alert(
-      'Auto-Lock After',
-      'Select time before auto-lock activates',
+      t('autoLockAfter'),
+      t('futureFeature'),
       [
-        { text: '1 minute', onPress: () => setSettings(prev => ({ ...prev, autoLockAfter: 1 })) },
-        { text: '5 minutes', onPress: () => setSettings(prev => ({ ...prev, autoLockAfter: 5 })) },
-        { text: '15 minutes', onPress: () => setSettings(prev => ({ ...prev, autoLockAfter: 15 })) },
-        { text: '30 minutes', onPress: () => setSettings(prev => ({ ...prev, autoLockAfter: 30 })) },
+        { text: '1 ' + t('minutes'), onPress: () => setSettings(prev => ({ ...prev, autoLockAfter: 1 })) },
+        { text: '5 ' + t('minutes'), onPress: () => setSettings(prev => ({ ...prev, autoLockAfter: 5 })) },
+        { text: '15 ' + t('minutes'), onPress: () => setSettings(prev => ({ ...prev, autoLockAfter: 15 })) },
+        { text: '30 ' + t('minutes'), onPress: () => setSettings(prev => ({ ...prev, autoLockAfter: 30 })) },
         { text: 'Cancel', style: 'cancel' },
       ]
     );
@@ -111,23 +113,23 @@ export default function AuthenticationScreen() {
             size={24} 
             color={isDarkMode ? '#ffffff' : '#000000'} 
           />
-          <Text style={[styles.backButtonText, isDarkMode && styles.darkText]}>Settings</Text>
+          <Text style={[styles.backButtonText, isDarkMode && styles.darkText]}>{t('settings')}</Text>
         </TouchableOpacity>
-        <Text style={[styles.title, isDarkMode && styles.darkText]}>Authentication</Text>
+        <Text style={[styles.title, isDarkMode && styles.darkText]}>{t('authentication')}</Text>
         <View style={{ width: 60 }} />
       </View>
       
       <ScrollView style={styles.scrollContainer}>
         <Text style={[styles.description, isDarkMode && { color: '#aaaaaa' }]}>
-          Configure authentication options to protect your invoice data.
+          {t('authenticationDescription')}
         </Text>
         
         <View style={[styles.card, isDarkMode && styles.darkCard]}>
           <View style={styles.settingRow}>
             <View style={styles.settingInfo}>
-              <Text style={[styles.settingTitle, isDarkMode && styles.darkText]}>Enable Biometric Authentication</Text>
+              <Text style={[styles.settingTitle, isDarkMode && styles.darkText]}>{t('enableBiometric')}</Text>
               <Text style={[styles.settingDescription, isDarkMode && { color: '#aaaaaa' }]}>
-                Use Face ID, Touch ID, or fingerprint to access the app
+                {t('biometricDescription')}
               </Text>
             </View>
             <Switch
@@ -142,9 +144,9 @@ export default function AuthenticationScreen() {
           
           <View style={styles.settingRow}>
             <View style={styles.settingInfo}>
-              <Text style={[styles.settingTitle, isDarkMode && styles.darkText]}>PIN Code Authentication</Text>
+              <Text style={[styles.settingTitle, isDarkMode && styles.darkText]}>{t('pinCode')}</Text>
               <Text style={[styles.settingDescription, isDarkMode && { color: '#aaaaaa' }]}>
-                Protect the app with a numeric PIN code
+                {t('pinCodeDescription')}
               </Text>
             </View>
             <Switch
@@ -158,9 +160,9 @@ export default function AuthenticationScreen() {
           {settings.pinEnabled && (
             <TouchableOpacity 
               style={[styles.subOption, isDarkMode && { backgroundColor: '#2a2a2a' }]}
-              onPress={() => Alert.alert('Change PIN', 'In a full implementation, a PIN change flow would appear here.')}
+              onPress={() => Alert.alert(t('changePin'), t('futureFeature'))}
             >
-              <Text style={styles.subOptionText}>Change PIN Code</Text>
+              <Text style={styles.subOptionText}>{t('changePin')}</Text>
               <Ionicons name="chevron-forward" size={18} color={isDarkMode ? '#8E8E93' : '#8E8E93'} />
             </TouchableOpacity>
           )}
@@ -169,9 +171,9 @@ export default function AuthenticationScreen() {
           
           <View style={styles.settingRow}>
             <View style={styles.settingInfo}>
-              <Text style={[styles.settingTitle, isDarkMode && styles.darkText]}>Auto-Lock App</Text>
+              <Text style={[styles.settingTitle, isDarkMode && styles.darkText]}>{t('autoLock')}</Text>
               <Text style={[styles.settingDescription, isDarkMode && { color: '#aaaaaa' }]}>
-                Automatically lock the app after a period of inactivity
+                {t('autoLockDescription')}
               </Text>
             </View>
             <Switch
@@ -187,9 +189,9 @@ export default function AuthenticationScreen() {
               style={[styles.subOption, isDarkMode && { backgroundColor: '#2a2a2a' }]}
               onPress={handleSelectAutoLockTime}
             >
-              <Text style={styles.subOptionText}>Auto-Lock After</Text>
+              <Text style={styles.subOptionText}>{t('autoLockAfter')}</Text>
               <View style={styles.timeOption}>
-                <Text style={[styles.timeOptionText, isDarkMode && { color: '#aaaaaa' }]}>{settings.autoLockAfter} minutes</Text>
+                <Text style={[styles.timeOptionText, isDarkMode && { color: '#aaaaaa' }]}>{settings.autoLockAfter} {t('minutes')}</Text>
                 <Ionicons name="chevron-forward" size={18} color={isDarkMode ? '#8E8E93' : '#8E8E93'} />
               </View>
             </TouchableOpacity>
@@ -199,9 +201,9 @@ export default function AuthenticationScreen() {
         <View style={[styles.card, isDarkMode && styles.darkCard]}>
           <View style={styles.settingRow}>
             <View style={styles.settingInfo}>
-              <Text style={[styles.settingTitle, isDarkMode && styles.darkText]}>Login Notifications</Text>
+              <Text style={[styles.settingTitle, isDarkMode && styles.darkText]}>{t('loginNotifications')}</Text>
               <Text style={[styles.settingDescription, isDarkMode && { color: '#aaaaaa' }]}>
-                Receive notifications when someone logs into your account
+                {t('loginNotificationsDescription')}
               </Text>
             </View>
             <Switch
@@ -219,19 +221,19 @@ export default function AuthenticationScreen() {
           disabled={isSaving}
         >
           <Text style={styles.saveButtonText}>
-            {isSaving ? 'Saving...' : 'Save Settings'}
+            {isSaving ? t('saving') : t('saveSettings')}
           </Text>
         </TouchableOpacity>
         
         <TouchableOpacity 
           style={[styles.dangerButton, isDarkMode && { backgroundColor: '#2a1515', borderColor: '#FF3B30' }]} 
           onPress={() => Alert.alert(
-            'Reset Authentication',
-            'This will reset all authentication settings. Are you sure you want to continue?',
+            t('resetAuthentication'),
+            t('resetAuthenticationConfirm'),
             [
               { text: 'Cancel', style: 'cancel' },
               { 
-                text: 'Reset', 
+                text: t('resetSettings'), 
                 style: 'destructive',
                 onPress: () => {
                   setSettings({
@@ -241,13 +243,13 @@ export default function AuthenticationScreen() {
                     autoLockAfter: 5,
                     notificationsEnabled: true,
                   });
-                  Alert.alert('Success', 'Authentication settings have been reset.');
+                  Alert.alert('Success', t('resetAuthenticationSuccess'));
                 }
               },
             ]
           )}
         >
-          <Text style={styles.dangerButtonText}>Reset Authentication Settings</Text>
+          <Text style={styles.dangerButtonText}>{t('resetAuthentication')}</Text>
         </TouchableOpacity>
       </ScrollView>
     </SafeAreaView>

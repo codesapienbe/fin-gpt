@@ -1,13 +1,14 @@
 import { Ionicons } from '@expo/vector-icons';
 import React, { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import {
-    ActivityIndicator,
-    FlatList,
-    StyleSheet,
-    Text,
-    TextInput,
-    TouchableOpacity,
-    View
+  ActivityIndicator,
+  FlatList,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View
 } from 'react-native';
 
 import InvoiceItem from '../../components/InvoiceItem';
@@ -19,6 +20,7 @@ export default function SearchScreen() {
   const [isSearching, setIsSearching] = useState(false);
   const [selectedInvoice, setSelectedInvoice] = useState<InvoiceData | null>(null);
   const [recentSearches, setRecentSearches] = useState<string[]>([]);
+  const { t } = useTranslation();
 
   const handleSearch = async () => {
     if (!searchQuery.trim()) return;
@@ -73,22 +75,22 @@ export default function SearchScreen() {
       {searchQuery.length > 0 ? (
         <>
           <Ionicons name="search-outline" size={64} color="#ccc" />
-          <Text style={styles.emptyTitle}>No Results Found</Text>
+          <Text style={styles.emptyTitle}>{t('noResultsFound')}</Text>
           <Text style={styles.emptyMessage}>
-            We couldn't find any invoices matching "{searchQuery}"
+            {t('noResultsForQuery', { query: searchQuery })}
           </Text>
         </>
       ) : (
         <>
           <Ionicons name="search" size={64} color="#ccc" />
-          <Text style={styles.emptyTitle}>Search Invoices</Text>
+          <Text style={styles.emptyTitle}>{t('searchInvoices')}</Text>
           <Text style={styles.emptyMessage}>
-            Search by invoice number, client name, date, or amount
+            {t('searchInstructions')}
           </Text>
           
           {recentSearches.length > 0 && (
             <View style={styles.recentContainer}>
-              <Text style={styles.recentTitle}>Recent Searches</Text>
+              <Text style={styles.recentTitle}>{t('recentSearches')}</Text>
               {recentSearches.map((term, index) => (
                 <TouchableOpacity 
                   key={index}
@@ -116,7 +118,7 @@ export default function SearchScreen() {
           <Ionicons name="search" size={20} color="#8E8E93" style={styles.searchIcon} />
           <TextInput
             style={styles.searchInput}
-            placeholder="Search invoices..."
+            placeholder={t('searchPlaceholder')}
             value={searchQuery}
             onChangeText={setSearchQuery}
             onSubmitEditing={handleSearch}
@@ -135,14 +137,14 @@ export default function SearchScreen() {
           onPress={handleSearch}
           disabled={!searchQuery.trim() || isSearching}
         >
-          <Text style={styles.searchButtonText}>Search</Text>
+          <Text style={styles.searchButtonText}>{t('search')}</Text>
         </TouchableOpacity>
       </View>
 
       {isSearching ? (
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color="#007AFF" />
-          <Text style={styles.loadingText}>Searching...</Text>
+          <Text style={styles.loadingText}>{t('searching')}</Text>
         </View>
       ) : (
         <FlatList

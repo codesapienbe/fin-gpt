@@ -234,22 +234,22 @@ const styles = StyleSheet.create({
   settingTitle: {
     fontSize: 16,
     fontWeight: '500',
+    marginBottom: 4,
   },
   settingDescription: {
     fontSize: 14,
     color: '#8E8E93',
-    marginTop: 2,
   },
   divider: {
     height: 1,
     backgroundColor: '#F0F0F0',
-    marginLeft: 56,
+    marginLeft: 72,
   },
   darkDivider: {
-    backgroundColor: '#333',
+    backgroundColor: '#333333',
   },
   footer: {
-    padding: 24,
+    padding: 16,
     alignItems: 'center',
   },
   footerText: {
@@ -257,6 +257,6 @@ const styles = StyleSheet.create({
     color: '#8E8E93',
   },
   darkFooterText: {
-    color: '#666',
+    color: '#666666',
   },
 }); 
