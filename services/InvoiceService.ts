@@ -1,16 +1,25 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { mockInvoices } from './mockData';
 
 export interface InvoiceData {
   id: string;
   invoiceNumber: string;
-  clientName: string;
-  amount: number;
   date: string;
+  dueDate: string;
+  status: string;
+  clientName: string;
+  clientEmail: string;
+  clientPhone: string;
+  amount: number;
+  currency: string;
+  taxRate: number;
+  taxAmount: number;
+  totalAmount: number;
   fileName: string;
-  fileUri: string;
   fileType: string;
+  fileSize: string;
   uploadDate: string;
-  status?: 'paid' | 'pending' | 'overdue';
+  fileUri: string;
 }
 
 const STORAGE_KEY = 'invoices';
@@ -26,10 +35,12 @@ export const InvoiceService = {
       if (jsonValue) {
         return JSON.parse(jsonValue) as InvoiceData[];
       }
-      return [];
+      // If no invoices in storage, initialize with mock data
+      await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(mockInvoices));
+      return mockInvoices;
     } catch (error) {
       console.error('Error getting invoices', error);
-      return [];
+      return mockInvoices; // Return mock data as fallback
     }
   },
 
@@ -135,6 +146,47 @@ export const InvoiceService = {
     // In a real application, this would generate a secure URL to access the invoice
     // For demo purposes, we'll just return a dummy URL
     return `https://invoiceapp.example.com/share/${invoiceId}?token=${Math.random().toString(36).substring(2, 15)}`;
+  },
+
+  /**
+   * Generate UBL XML for an invoice
+   * @param invoice Invoice data
+   * @returns Promise<string> UBL XML string
+   */
+  generateUBL: async (invoice: InvoiceData): Promise<string> => {
+    // In a real app, this would generate proper UBL XML
+    // For demo purposes, we'll return a simplified version
+    const ublXml = `<?xml version="1.0" encoding="UTF-8"?>
+<Invoice xmlns="urn:oasis:names:specification:ubl:schema:xsd:Invoice-2"
+         xmlns:cac="urn:oasis:names:specification:ubl:schema:xsd:CommonAggregateComponents-2"
+         xmlns:cbc="urn:oasis:names:specification:ubl:schema:xsd:CommonBasicComponents-2">
+  <cbc:ID>${invoice.invoiceNumber}</cbc:ID>
+  <cbc:IssueDate>${invoice.date}</cbc:IssueDate>
+  <cbc:InvoiceTypeCode>380</cbc:InvoiceTypeCode>
+  <cbc:DocumentCurrencyCode>USD</cbc:DocumentCurrencyCode>
+  <cac:AccountingSupplierParty>
+    <cac:Party>
+      <cac:PartyName>
+        <cbc:Name>Demo Company</cbc:Name>
+      </cac:PartyName>
+    </cac:Party>
+  </cac:AccountingSupplierParty>
+  <cac:AccountingCustomerParty>
+    <cac:Party>
+      <cac:PartyName>
+        <cbc:Name>${invoice.clientName}</cbc:Name>
+      </cac:PartyName>
+    </cac:Party>
+  </cac:AccountingCustomerParty>
+  <cac:LegalMonetaryTotal>
+    <cbc:LineExtensionAmount currencyID="USD">${invoice.amount}</cbc:LineExtensionAmount>
+    <cbc:TaxExclusiveAmount currencyID="USD">${invoice.amount}</cbc:TaxExclusiveAmount>
+    <cbc:TaxInclusiveAmount currencyID="USD">${invoice.amount}</cbc:TaxInclusiveAmount>
+    <cbc:PayableAmount currencyID="USD">${invoice.amount}</cbc:PayableAmount>
+  </cac:LegalMonetaryTotal>
+</Invoice>`;
+
+    return ublXml;
   }
 };
 

@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next';
 import {
   ActivityIndicator,
   Dimensions,
+  SafeAreaView,
   ScrollView,
   StyleSheet,
   Text,
@@ -304,65 +305,67 @@ export default function DashboardScreen() {
   const currencySymbol = getCurrencySymbol();
 
   return (
-    <ScrollView style={[styles.container, isDarkMode && styles.darkBackground]}>
-      {/* Key metrics */}
-      <View style={styles.statsContainer}>
-        <View style={[styles.statCard, isDarkMode && styles.darkCard]}>
-          <Text style={[styles.statValue, isDarkMode && styles.darkText]}>{stats.totalInvoices}</Text>
-          <Text style={[styles.statLabel, isDarkMode && styles.darkSecondaryText]}>{t('totalInvoices')}</Text>
+    <SafeAreaView style={{ flex: 1, backgroundColor: 'white' }}>
+      <ScrollView style={[styles.container, isDarkMode && styles.darkBackground]}>
+        {/* Key metrics */}
+        <View style={styles.statsContainer}>
+          <View style={[styles.statCard, isDarkMode && styles.darkCard]}>
+            <Text style={[styles.statValue, isDarkMode && styles.darkText]}>{stats.totalInvoices}</Text>
+            <Text style={[styles.statLabel, isDarkMode && styles.darkSecondaryText]}>{t('totalInvoices')}</Text>
+          </View>
+          <View style={[styles.statCard, isDarkMode && styles.darkCard]}>
+            <Text style={[styles.statValue, isDarkMode && styles.darkText]}>
+              {formattedAmounts.totalAmount || '...'}
+            </Text>
+            <Text style={[styles.statLabel, isDarkMode && styles.darkSecondaryText]}>{t('totalAmount')}</Text>
+          </View>
+          <View style={[styles.statCard, isDarkMode && styles.darkCard]}>
+            <Text style={[styles.statValue, isDarkMode && styles.darkText]}>
+              {formattedAmounts.avgAmount || '...'}
+            </Text>
+            <Text style={[styles.statLabel, isDarkMode && styles.darkSecondaryText]}>{t('avgInvoice')}</Text>
+          </View>
         </View>
-        <View style={[styles.statCard, isDarkMode && styles.darkCard]}>
-          <Text style={[styles.statValue, isDarkMode && styles.darkText]}>
-            {formattedAmounts.totalAmount || '...'}
-          </Text>
-          <Text style={[styles.statLabel, isDarkMode && styles.darkSecondaryText]}>{t('totalAmount')}</Text>
-        </View>
-        <View style={[styles.statCard, isDarkMode && styles.darkCard]}>
-          <Text style={[styles.statValue, isDarkMode && styles.darkText]}>
-            {formattedAmounts.avgAmount || '...'}
-          </Text>
-          <Text style={[styles.statLabel, isDarkMode && styles.darkSecondaryText]}>{t('avgInvoice')}</Text>
-        </View>
-      </View>
 
-      {/* Status indicator cards */}
-      <View style={styles.statusCards}>
-        <View style={[styles.statusCard, { backgroundColor: '#4CD964' }]}>
-          <Text style={styles.statusCardValue}>{getStatusCount().paid}</Text>
-          <Text style={styles.statusCardLabel}>{t('paid')}</Text>
+        {/* Status indicator cards */}
+        <View style={styles.statusCards}>
+          <View style={[styles.statusCard, { backgroundColor: '#4CD964' }]}>
+            <Text style={styles.statusCardValue}>{getStatusCount().paid}</Text>
+            <Text style={styles.statusCardLabel}>{t('paid')}</Text>
+          </View>
+          <View style={[styles.statusCard, { backgroundColor: '#FF9500' }]}>
+            <Text style={styles.statusCardValue}>{getStatusCount().pending}</Text>
+            <Text style={styles.statusCardLabel}>{t('pending')}</Text>
+          </View>
+          <View style={[styles.statusCard, { backgroundColor: '#FF3B30' }]}>
+            <Text style={styles.statusCardValue}>{getStatusCount().overdue}</Text>
+            <Text style={styles.statusCardLabel}>{t('overdue')}</Text>
+          </View>
         </View>
-        <View style={[styles.statusCard, { backgroundColor: '#FF9500' }]}>
-          <Text style={styles.statusCardValue}>{getStatusCount().pending}</Text>
-          <Text style={styles.statusCardLabel}>{t('pending')}</Text>
-        </View>
-        <View style={[styles.statusCard, { backgroundColor: '#FF3B30' }]}>
-          <Text style={styles.statusCardValue}>{getStatusCount().overdue}</Text>
-          <Text style={styles.statusCardLabel}>{t('overdue')}</Text>
-        </View>
-      </View>
 
-      {/* Monthly revenue chart */}
-      <View style={[styles.chartContainer, isDarkMode && styles.darkCard]}>
-        <Text style={[styles.sectionTitle, isDarkMode && styles.darkText]}>{t('monthlyRevenue')}</Text>
-        <View style={styles.chartWrapper}>
-          <BarChart
-            data={getChartData()}
-            width={screenWidth - 48}
-            height={280}
-            chartConfig={chartConfig}
-            style={styles.chart}
-            showBarTops={false}
-            withInnerLines={false}
-            showValuesOnTopOfBars={false}
-            fromZero={true}
-            yAxisLabel={currencySymbol}
-            yAxisSuffix=""
-            yAxisInterval={1}
-            segments={5}
-          />
+        {/* Monthly revenue chart */}
+        <View style={[styles.chartContainer, isDarkMode && styles.darkCard]}>
+          <Text style={[styles.sectionTitle, isDarkMode && styles.darkText]}>{t('monthlyRevenue')}</Text>
+          <View style={styles.chartWrapper}>
+            <BarChart
+              data={getChartData()}
+              width={screenWidth - 48}
+              height={280}
+              chartConfig={chartConfig}
+              style={styles.chart}
+              showBarTops={false}
+              withInnerLines={false}
+              showValuesOnTopOfBars={false}
+              fromZero={true}
+              yAxisLabel={currencySymbol}
+              yAxisSuffix=""
+              yAxisInterval={1}
+              segments={5}
+            />
+          </View>
         </View>
-      </View>
-    </ScrollView>
+      </ScrollView>
+    </SafeAreaView>
   );
 }
 

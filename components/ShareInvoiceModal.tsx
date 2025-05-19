@@ -1,10 +1,13 @@
 import { Ionicons } from '@expo/vector-icons';
 import { BlurView } from 'expo-blur';
 import * as Clipboard from 'expo-clipboard';
+import * as Linking from 'expo-linking';
 import * as Sharing from 'expo-sharing';
 import React, { useEffect, useState } from 'react';
 import { ActivityIndicator, Alert, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { formatCurrency } from '../services/i18n';
 import InvoiceService, { InvoiceData } from '../services/InvoiceService';
+import SettingsService from '../services/SettingsService';
 
 interface ShareInvoiceModalProps {
   invoice: InvoiceData;
@@ -16,10 +19,19 @@ const ShareInvoiceModal: React.FC<ShareInvoiceModalProps> = ({ invoice, onClose 
   const [email, setEmail] = useState<string>('');
   const [isGeneratingLink, setIsGeneratingLink] = useState<boolean>(false);
   const [isSendingEmail, setIsSendingEmail] = useState<boolean>(false);
+  const [formattedAmount, setFormattedAmount] = useState('');
+  const [userPreferences, setUserPreferences] = useState<any>(null);
   
   useEffect(() => {
     generateShareableLink();
+    loadUserPreferences();
   }, []);
+  
+  useEffect(() => {
+    if (userPreferences) {
+      formatInvoiceAmount();
+    }
+  }, [userPreferences, invoice]);
   
   const generateShareableLink = async () => {
     setIsGeneratingLink(true);
@@ -84,11 +96,137 @@ const ShareInvoiceModal: React.FC<ShareInvoiceModalProps> = ({ invoice, onClose 
       Alert.alert('Error', 'Failed to share invoice');
     }
   };
+
+  const shareViaWhatsApp = async () => {
+    try {
+      const message = `Invoice #${invoice.invoiceNumber} - ${invoice.clientName}\nAmount: $${invoice.amount}\nDate: ${invoice.date}\n\nView invoice: ${shareableLink}`;
+      const whatsappUrl = `whatsapp://send?text=${encodeURIComponent(message)}`;
+      
+      const canOpen = await Linking.canOpenURL(whatsappUrl);
+      if (!canOpen) {
+        Alert.alert('Error', 'WhatsApp is not installed on this device');
+        return;
+      }
+      
+      await Linking.openURL(whatsappUrl);
+    } catch (error: unknown) {
+      Alert.alert('Error', 'Failed to share via WhatsApp');
+    }
+  };
   
+  const loadUserPreferences = async () => {
+    try {
+      const preferences = await SettingsService.getUserPreferences();
+      setUserPreferences(preferences);
+    } catch (error) {
+      console.error('Error loading user preferences:', error);
+    }
+  };
+
+  const formatInvoiceAmount = async () => {
+    try {
+      const formatted = await formatCurrency(invoice.amount);
+      setFormattedAmount(formatted);
+    } catch (error) {
+      console.error('Error formatting amount:', error);
+      setFormattedAmount(`${invoice.amount}`);
+    }
+  };
+
+  const getLabel = (key: string) => {
+    const labels: { [key: string]: { [key: string]: string } } = {
+      'en-US': {
+        shareInvoice: 'Share Invoice',
+        copyLink: 'Copy Link',
+        shareEmail: 'Share via Email',
+        shareWhatsApp: 'Share via WhatsApp',
+        shareSystem: 'Share via System',
+        close: 'Close',
+        shareMessage: 'Invoice #{number} for {client} - {amount} ({date})',
+        whatsAppNotInstalled: 'WhatsApp is not installed on your device'
+      },
+      'nl-NL': {
+        shareInvoice: 'Factuur Delen',
+        copyLink: 'Link Kopiëren',
+        shareEmail: 'Delen via E-mail',
+        shareWhatsApp: 'Delen via WhatsApp',
+        shareSystem: 'Delen via Systeem',
+        close: 'Sluiten',
+        shareMessage: 'Factuur #{number} voor {client} - {amount} ({date})',
+        whatsAppNotInstalled: 'WhatsApp is niet geïnstalleerd op uw apparaat'
+      },
+      'tr-TR': {
+        shareInvoice: 'Faturayı Paylaş',
+        copyLink: 'Bağlantıyı Kopyala',
+        shareEmail: 'E-posta ile Paylaş',
+        shareWhatsApp: 'WhatsApp ile Paylaş',
+        shareSystem: 'Sistem ile Paylaş',
+        close: 'Kapat',
+        shareMessage: '{client} için #{number} numaralı fatura - {amount} ({date})',
+        whatsAppNotInstalled: 'WhatsApp cihazınızda yüklü değil'
+      }
+    };
+    
+    const language = userPreferences?.language || 'en-US';
+    return labels[language]?.[key] || key;
+  };
+
+  const handleCopyLink = async () => {
+    try {
+      await Linking.openURL(invoice.fileUri);
+    } catch (error) {
+      console.error('Error copying link:', error);
+    }
+  };
+
+  const handleShareEmail = async () => {
+    try {
+      const subject = getLabel('shareMessage')
+        .replace('{number}', invoice.invoiceNumber)
+        .replace('{client}', invoice.clientName)
+        .replace('{amount}', formattedAmount)
+        .replace('{date}', invoice.date);
+      
+      const mailtoUrl = `mailto:?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(invoice.fileUri)}`;
+      await Linking.openURL(mailtoUrl);
+    } catch (error) {
+      console.error('Error sharing via email:', error);
+    }
+  };
+
+  const handleShareWhatsApp = async () => {
+    try {
+      const message = getLabel('shareMessage')
+        .replace('{number}', invoice.invoiceNumber)
+        .replace('{client}', invoice.clientName)
+        .replace('{amount}', formattedAmount)
+        .replace('{date}', invoice.date);
+      
+      const whatsappUrl = `whatsapp://send?text=${encodeURIComponent(message + '\n\n' + invoice.fileUri)}`;
+      const canOpen = await Linking.canOpenURL(whatsappUrl);
+      
+      if (canOpen) {
+        await Linking.openURL(whatsappUrl);
+      } else {
+        console.error(getLabel('whatsAppNotInstalled'));
+      }
+    } catch (error) {
+      console.error('Error sharing via WhatsApp:', error);
+    }
+  };
+
+  const handleShareSystem = async () => {
+    try {
+      await Linking.openURL(invoice.fileUri);
+    } catch (error) {
+      console.error('Error sharing via system:', error);
+    }
+  };
+
   return (
     <BlurView intensity={90} style={styles.container}>
       <View style={styles.modal}>
-        <Text style={styles.title}>Share Invoice</Text>
+        <Text style={styles.title}>{getLabel('shareInvoice')}</Text>
         <Text style={styles.subtitle}>Invoice #{invoice.invoiceNumber} - {invoice.clientName}</Text>
         
         <View style={styles.section}>
@@ -100,7 +238,7 @@ const ShareInvoiceModal: React.FC<ShareInvoiceModalProps> = ({ invoice, onClose 
             ) : (
               <>
                 <Text style={styles.link} numberOfLines={1}>{shareableLink}</Text>
-                <TouchableOpacity onPress={copyToClipboard} style={styles.copyButton}>
+                <TouchableOpacity onPress={handleCopyLink} style={styles.copyButton}>
                   <Ionicons name="copy-outline" size={20} color="#007AFF" />
                 </TouchableOpacity>
               </>
@@ -122,11 +260,11 @@ const ShareInvoiceModal: React.FC<ShareInvoiceModalProps> = ({ invoice, onClose 
           
           <TouchableOpacity 
             style={[styles.button, styles.emailButton]}
-            onPress={sendEmail}
+            onPress={handleShareEmail}
             disabled={isSendingEmail}
           >
             <Text style={styles.buttonText}>
-              {isSendingEmail ? 'Sending...' : 'Send Email'}
+              {isSendingEmail ? 'Sending...' : getLabel('shareEmail')}
             </Text>
           </TouchableOpacity>
         </View>
@@ -135,10 +273,19 @@ const ShareInvoiceModal: React.FC<ShareInvoiceModalProps> = ({ invoice, onClose 
           <Text style={styles.sectionTitle}>Other Options</Text>
           
           <TouchableOpacity 
-            style={[styles.button, styles.shareButton]}
-            onPress={shareViaSystem}
+            style={[styles.button, styles.whatsappButton]}
+            onPress={handleShareWhatsApp}
           >
-            <Text style={styles.buttonText}>Share via System</Text>
+            <Ionicons name="logo-whatsapp" size={20} color="white" style={styles.buttonIcon} />
+            <Text style={styles.buttonText}>{getLabel('shareWhatsApp')}</Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity 
+            style={[styles.button, styles.shareButton]}
+            onPress={handleShareSystem}
+          >
+            <Ionicons name="share-outline" size={20} color="white" style={styles.buttonIcon} />
+            <Text style={styles.buttonText}>{getLabel('shareSystem')}</Text>
           </TouchableOpacity>
         </View>
         
@@ -146,7 +293,7 @@ const ShareInvoiceModal: React.FC<ShareInvoiceModalProps> = ({ invoice, onClose 
           style={[styles.button, styles.cancelButton]}
           onPress={onClose}
         >
-          <Text style={styles.cancelButtonText}>Close</Text>
+          <Text style={styles.cancelButtonText}>{getLabel('close')}</Text>
         </TouchableOpacity>
       </View>
     </BlurView>
@@ -227,9 +374,14 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     alignItems: 'center',
     marginBottom: 10,
+    flexDirection: 'row',
+    justifyContent: 'center',
   },
   emailButton: {
     backgroundColor: '#007AFF',
+  },
+  whatsappButton: {
+    backgroundColor: '#25D366',
   },
   shareButton: {
     backgroundColor: '#4CD964',
@@ -240,6 +392,9 @@ const styles = StyleSheet.create({
   buttonText: {
     fontWeight: '600',
     color: '#fff',
+  },
+  buttonIcon: {
+    marginRight: 8,
   },
   cancelButtonText: {
     fontWeight: '600',

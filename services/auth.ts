@@ -1,4 +1,5 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { mockUser } from './mockData';
 
 export interface User {
   id: string;
@@ -43,14 +44,7 @@ class AuthService {
       // Mock implementation with demo user
       if ((credentials.email === 'demo@example.com' && credentials.password === 'demo123') ||
           (credentials.email === 'demo' && credentials.password === 'demo')) {
-        const user: User = {
-          id: '1',
-          email: credentials.email,
-          name: 'Demo User',
-          company: 'Demo Company',
-          role: 'user'
-        };
-
+        const user = mockUser;
         const token = 'mock-jwt-token';
 
         await Promise.all([

@@ -1,48 +1,54 @@
 import { Ionicons } from '@expo/vector-icons';
-import * as Sharing from 'expo-sharing';
-import * as WebBrowser from 'expo-web-browser';
-import React, { useState } from 'react';
-import { Alert, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
-
-interface InvoiceData {
-  id: string;
-  invoiceNumber: string;
-  clientName: string;
-  amount: number;
-  date: string;
-  fileName: string;
-  fileUri: string;
-  fileType: string;
-  uploadDate: string;
-  status?: 'paid' | 'pending' | 'overdue';
-}
+import * as Linking from 'expo-linking';
+import { useRouter } from 'expo-router';
+import React, { useEffect, useState } from 'react';
+import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { formatCurrency } from '../services/i18n';
+import { InvoiceData } from '../services/InvoiceService';
+import SettingsService from '../services/SettingsService';
+import ShareInvoiceModal from './ShareInvoiceModal';
 
 interface InvoiceItemProps {
   invoice: InvoiceData;
-  onPress: (invoice: InvoiceData) => void;
 }
 
-const InvoiceItem: React.FC<InvoiceItemProps> = ({ invoice, onPress }) => {
-  const [isShareModalVisible, setIsShareModalVisible] = useState(false);
-  
-  const formatCurrency = (amount: number): string => {
-    return new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: 'USD',
-    }).format(amount);
-  };
-  
-  const getFileIcon = () => {
-    if (invoice.fileType.includes('pdf')) {
-      return 'document-text-outline' as const;
-    } else if (invoice.fileType.includes('image')) {
-      return 'image-outline' as const;
+const InvoiceItem: React.FC<InvoiceItemProps> = ({ invoice }) => {
+  const router = useRouter();
+  const [showShare, setShowShare] = useState(false);
+  const [formattedAmount, setFormattedAmount] = useState('');
+  const [userPreferences, setUserPreferences] = useState<any>(null);
+
+  useEffect(() => {
+    loadUserPreferences();
+  }, []);
+
+  useEffect(() => {
+    if (userPreferences) {
+      formatInvoiceAmount();
     }
-    return 'document-outline' as const;
+  }, [userPreferences, invoice]);
+
+  const loadUserPreferences = async () => {
+    try {
+      const preferences = await SettingsService.getUserPreferences();
+      setUserPreferences(preferences);
+    } catch (error) {
+      console.error('Error loading user preferences:', error);
+    }
   };
-  
-  const getStatusColor = () => {
-    switch (invoice.status) {
+
+  const formatInvoiceAmount = async () => {
+    try {
+      const formatted = await formatCurrency(invoice.amount);
+      setFormattedAmount(formatted);
+    } catch (error) {
+      console.error('Error formatting amount:', error);
+      setFormattedAmount(`${invoice.amount}`);
+    }
+  };
+
+  const getStatusColor = (status: string) => {
+    switch (status) {
       case 'paid':
         return '#4CD964'; // Green
       case 'overdue':
@@ -52,144 +58,288 @@ const InvoiceItem: React.FC<InvoiceItemProps> = ({ invoice, onPress }) => {
         return '#FF9500'; // Orange
     }
   };
-  
-  const getStatusLabel = () => {
-    return invoice.status ? invoice.status.charAt(0).toUpperCase() + invoice.status.slice(1) : 'Pending';
-  };
-  
-  const openFile = async () => {
-    try {
-      if (invoice.fileUri) {
-        await WebBrowser.openBrowserAsync(invoice.fileUri);
+
+  const getStatusLabel = (status: string) => {
+    const labels: { [key: string]: { [key: string]: string } } = {
+      'en-US': {
+        paid: 'Paid',
+        pending: 'Pending',
+        overdue: 'Overdue'
+      },
+      'nl-NL': {
+        paid: 'Betaald',
+        pending: 'In afwachting',
+        overdue: 'Verlopen'
+      },
+      'tr-TR': {
+        paid: 'Ödendi',
+        pending: 'Beklemede',
+        overdue: 'Gecikmiş'
       }
-    } catch (error: unknown) {
-      Alert.alert('Error opening file', (error as Error).message || 'Unknown error occurred');
+    };
+    
+    const language = userPreferences?.language || 'en-US';
+    return labels[language]?.[status] || status.charAt(0).toUpperCase() + status.slice(1);
+  };
+
+  const getLabel = (key: string) => {
+    const labels: { [key: string]: { [key: string]: string } } = {
+      'en-US': {
+        invoiceNumber: 'Invoice #{number}',
+        clientName: 'Client',
+        amount: 'Amount',
+        date: 'Date',
+        fileName: 'File',
+        preview: 'Preview',
+        ubl: 'UBL',
+        share: 'Share',
+        paid: 'Paid',
+        pending: 'Pending',
+        overdue: 'Overdue'
+      },
+      'nl-NL': {
+        invoiceNumber: 'Factuur #{number}',
+        clientName: 'Klant',
+        amount: 'Bedrag',
+        date: 'Datum',
+        fileName: 'Bestand',
+        preview: 'Voorbeeld',
+        ubl: 'UBL',
+        share: 'Delen',
+        paid: 'Betaald',
+        pending: 'In afwachting',
+        overdue: 'Verlopen'
+      },
+      'tr-TR': {
+        invoiceNumber: 'Fatura #{number}',
+        clientName: 'Müşteri',
+        amount: 'Tutar',
+        date: 'Tarih',
+        fileName: 'Dosya',
+        preview: 'Önizleme',
+        ubl: 'UBL',
+        share: 'Paylaş',
+        paid: 'Ödendi',
+        pending: 'Beklemede',
+        overdue: 'Gecikmiş'
+      }
+    };
+    
+    const language = userPreferences?.language || 'en-US';
+    return labels[language]?.[key] || key;
+  };
+
+  const getFileIcon = (fileType: string): keyof typeof Ionicons.glyphMap => {
+    switch (fileType.toLowerCase()) {
+      case 'pdf':
+        return 'document-text-outline';
+      case 'doc':
+      case 'docx':
+        return 'document-outline';
+      case 'xls':
+      case 'xlsx':
+        return 'grid-outline';
+      case 'jpg':
+      case 'jpeg':
+      case 'png':
+        return 'image-outline';
+      default:
+        return 'document-outline';
     }
   };
-  
-  const shareInvoice = async () => {
+
+  const handleOpenFile = async () => {
     try {
-      if (!(await Sharing.isAvailableAsync())) {
-        Alert.alert('Sharing is not available on this device');
-        return;
-      }
-      
-      // For sharing a file, we need to use the shareAsync method
-      await Sharing.shareAsync(invoice.fileUri, {
-        dialogTitle: `Share Invoice #${invoice.invoiceNumber}`,
-        UTI: invoice.fileType.includes('pdf') ? 'com.adobe.pdf' : 'public.image',
-      });
-    } catch (error: unknown) {
-      Alert.alert('Error sharing file', (error as Error).message || 'Unknown error occurred');
+      await Linking.openURL(invoice.fileUri);
+    } catch (error) {
+      console.error('Error opening file:', error);
     }
   };
-  
+
+  const handleShare = () => {
+    setShowShare(true);
+  };
+
   return (
-    <TouchableOpacity 
-      style={styles.container}
-      onPress={() => onPress(invoice)}
-    >
-      <View style={styles.iconContainer}>
-        <Ionicons name={getFileIcon()} size={24} color="#007AFF" />
-      </View>
-      
-      <View style={styles.infoContainer}>
-        <Text style={styles.invoiceNumber}>Invoice #{invoice.invoiceNumber}</Text>
-        <Text style={styles.clientName}>{invoice.clientName}</Text>
-        <Text style={styles.date}>{invoice.date}</Text>
-        <View style={[styles.statusBadge, { backgroundColor: getStatusColor() }]}>
-          <Text style={styles.statusText}>{getStatusLabel()}</Text>
-        </View>
-      </View>
-      
-      <View style={styles.rightContainer}>
-        <Text style={styles.amount}>{formatCurrency(invoice.amount)}</Text>
-        
-        <View style={styles.actions}>
-          <TouchableOpacity 
-            style={styles.actionButton}
-            onPress={openFile}
-          >
-            <Ionicons name="eye-outline" size={20} color="#007AFF" />
-          </TouchableOpacity>
+    <>
+      <TouchableOpacity 
+        style={styles.container}
+        onPress={() => router.push(`/invoice/${invoice.id}` as any)}
+      >
+        <View style={styles.content}>
+          <View style={styles.header}>
+            <Text style={styles.invoiceNumber}>{getLabel('invoiceNumber').replace('{number}', invoice.invoiceNumber)}</Text>
+            <View style={[styles.statusBadge, { backgroundColor: getStatusColor(invoice.status || 'pending') }]}>
+              <Text style={styles.statusText}>{getLabel(invoice.status || 'pending')}</Text>
+            </View>
+          </View>
           
-          <TouchableOpacity 
-            style={styles.actionButton}
-            onPress={shareInvoice}
-          >
-            <Ionicons name="share-outline" size={20} color="#007AFF" />
-          </TouchableOpacity>
+          <View style={styles.detailsRow}>
+            <Text style={styles.clientName}>{invoice.clientName}</Text>
+            <Text style={styles.amount}>{formattedAmount}</Text>
+          </View>
+          
+          <View style={styles.footer}>
+            <View style={styles.dateContainer}>
+              <Ionicons name="calendar-outline" size={14} color="#666" />
+              <Text style={styles.date}>{invoice.date}</Text>
+            </View>
+            <View style={styles.fileContainer}>
+              <Ionicons name={getFileIcon(invoice.fileType || '')} size={14} color="#666" />
+              <Text style={styles.fileName}>{invoice.fileName}</Text>
+            </View>
+          </View>
+
+          <View style={styles.actions}>
+            <TouchableOpacity 
+              style={[styles.actionButton, styles.previewButton]}
+              onPress={handleOpenFile}
+            >
+              <Ionicons name="eye-outline" size={20} color="#007AFF" />
+              <Text style={[styles.actionButtonText, styles.previewButtonText]}>{getLabel('preview')}</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity 
+              style={[styles.actionButton, styles.ublButton]}
+              onPress={handleOpenFile}
+            >
+              <Ionicons name="code-outline" size={20} color="#007AFF" />
+              <Text style={[styles.actionButtonText, styles.ublButtonText]}>{getLabel('ubl')}</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity 
+              style={[styles.actionButton, styles.shareButton]}
+              onPress={handleShare}
+            >
+              <Ionicons name="share-outline" size={20} color="#007AFF" />
+              <Text style={[styles.actionButtonText, styles.shareButtonText]}>{getLabel('share')}</Text>
+            </TouchableOpacity>
+          </View>
         </View>
-      </View>
-    </TouchableOpacity>
+      </TouchableOpacity>
+
+      {showShare && (
+        <ShareInvoiceModal
+          invoice={invoice}
+          onClose={() => setShowShare(false)}
+        />
+      )}
+    </>
   );
 };
 
 const styles = StyleSheet.create({
   container: {
-    flexDirection: 'row',
     backgroundColor: 'white',
-    borderRadius: 10,
+    borderRadius: 12,
     padding: 16,
-    marginBottom: 10,
+    marginBottom: 12,
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
+    shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
-    shadowRadius: 2,
-    elevation: 2,
+    shadowRadius: 3.84,
+    elevation: 5,
   },
-  iconContainer: {
-    justifyContent: 'center',
+  content: {
+    flexDirection: 'column',
+  },
+  header: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
     alignItems: 'center',
-    marginRight: 12,
-  },
-  infoContainer: {
-    flex: 1,
-    justifyContent: 'center',
+    marginBottom: 12,
   },
   invoiceNumber: {
-    fontSize: 16,
+    fontSize: 14,
+    color: '#666',
+  },
+  statusBadge: {
+    paddingHorizontal: 12,
+    paddingVertical: 4,
+    borderRadius: 12,
+  },
+  statusText: {
+    color: 'white',
+    fontSize: 12,
     fontWeight: '600',
+  },
+  detailsRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
     marginBottom: 4,
   },
   clientName: {
     fontSize: 14,
-    color: '#666',
-    marginBottom: 2,
-  },
-  date: {
-    fontSize: 12,
-    color: '#999',
-    marginBottom: 6,
-  },
-  statusBadge: {
-    paddingHorizontal: 8,
-    paddingVertical: 2,
-    borderRadius: 12,
-    alignSelf: 'flex-start',
-    marginTop: 2,
-  },
-  statusText: {
-    color: 'white',
-    fontSize: 10,
-    fontWeight: '600',
-  },
-  rightContainer: {
-    alignItems: 'flex-end',
-    justifyContent: 'space-between',
+    color: '#333',
   },
   amount: {
     fontSize: 16,
     fontWeight: '600',
     color: '#007AFF',
-    marginBottom: 8,
+  },
+  footer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 12,
+  },
+  dateContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  date: {
+    fontSize: 14,
+    color: '#666',
+    marginLeft: 4,
+  },
+  fileContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  fileName: {
+    fontSize: 14,
+    color: '#666',
+    marginLeft: 4,
   },
   actions: {
     flexDirection: 'row',
+    justifyContent: 'space-between',
+    borderTopWidth: 1,
+    borderTopColor: '#f0f0f0',
+    paddingTop: 12,
   },
   actionButton: {
-    padding: 6,
-    marginLeft: 8,
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 8,
+    borderRadius: 8,
+  },
+  actionButtonText: {
+    marginLeft: 4,
+    fontSize: 14,
+    fontWeight: '500',
+  },
+  previewButton: {
+    backgroundColor: '#F0F8FF',
+  },
+  previewButtonText: {
+    color: '#007AFF',
+  },
+  ublButton: {
+    backgroundColor: '#F0F8FF',
+    marginHorizontal: 8,
+  },
+  ublButtonText: {
+    color: '#007AFF',
+  },
+  shareButton: {
+    backgroundColor: '#F0F8FF',
+  },
+  shareButtonText: {
+    color: '#007AFF',
   },
 });
 

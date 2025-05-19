@@ -1,89 +1,92 @@
 import { Ionicons } from '@expo/vector-icons';
-import { Tabs, useRouter } from 'expo-router';
+import { Tabs } from 'expo-router';
 import React from 'react';
-import { useTranslation } from 'react-i18next';
-import { Alert, TouchableOpacity, useColorScheme } from 'react-native';
-
-import { authService } from '../../services/auth';
-import '../../services/i18n';
+import { Platform } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import SettingsService from '../../services/SettingsService';
 
 export default function TabLayout() {
-  const colorScheme = useColorScheme();
-  const { t } = useTranslation();
-  const router = useRouter();
+  const insets = useSafeAreaInsets();
+  const [userPreferences, setUserPreferences] = React.useState<any>(null);
 
-  const handleLogout = async () => {
+  React.useEffect(() => {
+    loadUserPreferences();
+  }, []);
+
+  const loadUserPreferences = async () => {
     try {
-      await authService.logout();
-      router.replace('/(auth)/login');
+      const preferences = await SettingsService.getUserPreferences();
+      setUserPreferences(preferences);
     } catch (error) {
-      Alert.alert(t('error'), t('logoutError'));
+      console.error('Error loading user preferences:', error);
     }
+  };
+
+  const getLabel = (key: string) => {
+    const labels: { [key: string]: { [key: string]: string } } = {
+      'en-US': {
+        home: 'Home',
+        invoices: 'Invoices',
+        settings: 'Settings'
+      },
+      'nl-NL': {
+        home: 'Home',
+        invoices: 'Facturen',
+        settings: 'Instellingen'
+      },
+      'tr-TR': {
+        home: 'Ana Sayfa',
+        invoices: 'Faturalar',
+        settings: 'Ayarlar'
+      }
+    };
+    
+    const language = userPreferences?.language || 'en-US';
+    return labels[language]?.[key] || key;
   };
 
   return (
     <Tabs
       screenOptions={{
         tabBarActiveTintColor: '#007AFF',
-        tabBarInactiveTintColor: '#8E8E93',
-        headerStyle: {
-          backgroundColor: colorScheme === 'dark' ? '#1c1c1e' : '#ffffff',
-        },
-        headerTitleStyle: {
-          fontWeight: '600',
-        },
-        headerTintColor: colorScheme === 'dark' ? '#ffffff' : '#000000',
+        tabBarInactiveTintColor: '#666',
         tabBarStyle: {
-          backgroundColor: colorScheme === 'dark' ? '#1c1c1e' : '#ffffff',
+          backgroundColor: 'white',
+          borderTopWidth: 1,
+          borderTopColor: '#f0f0f0',
+          height: Platform.OS === 'ios' ? 88 : 60,
+          paddingBottom: Platform.OS === 'ios' ? 28 : 8,
+          paddingTop: 8,
         },
-        headerRight: () => (
-          <TouchableOpacity
-            onPress={handleLogout}
-            style={{ marginRight: 16 }}
-          >
-            <Ionicons
-              name="log-out-outline"
-              size={24}
-              color={colorScheme === 'dark' ? '#ffffff' : '#000000'}
-            />
-          </TouchableOpacity>
-        ),
-      }}>
+        tabBarLabelStyle: {
+          fontSize: 12,
+          fontWeight: '500',
+        },
+        headerShown: false,
+      }}
+    >
       <Tabs.Screen
         name="home"
         options={{
-          title: t('dashboard'),
-          headerTitle: t('dashboard'),
+          title: getLabel('home'),
           tabBarIcon: ({ color, size }) => (
-            <Ionicons name="home" size={size} color={color} />
+            <Ionicons name="home-outline" size={size} color={color} />
           ),
         }}
       />
       <Tabs.Screen
         name="index"
         options={{
-          title: t('invoices'),
-          headerTitle: t('myInvoices'),
+          title: getLabel('invoices'),
           tabBarIcon: ({ color, size }) => (
-            <Ionicons name="document-text" size={size} color={color} />
-          ),
-        }}
-      />
-      <Tabs.Screen
-        name="search"
-        options={{
-          title: t('search'),
-          headerTitle: t('searchInvoices'),
-          tabBarIcon: ({ color, size }) => (
-            <Ionicons name="search" size={size} color={color} />
+            <Ionicons name="document-text-outline" size={size} color={color} />
           ),
         }}
       />
       <Tabs.Screen
         name="settings"
         options={{
-          title: t('settings'),
-          headerTitle: t('settings'),
+          title: getLabel('settings'),
           tabBarIcon: ({ color, size }) => (
             <Ionicons name="settings-outline" size={size} color={color} />
           ),
