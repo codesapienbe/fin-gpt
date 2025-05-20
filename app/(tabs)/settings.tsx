@@ -5,6 +5,7 @@ import { useTranslation } from 'react-i18next';
 import { Alert, ScrollView, StyleSheet, Text, TouchableOpacity, View, useColorScheme } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
+import AuthService, { UserData } from '../../services/AuthService';
 import { getCurrencyConfig, getLanguageConfig } from '../../services/i18n';
 import SettingsService, { UserPreferences } from '../../services/SettingsService';
 
@@ -42,9 +43,11 @@ export default function SettingsScreen() {
   const { t, i18n } = useTranslation();
   const [settings, setSettings] = useState<UserPreferences | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [user, setUser] = useState<UserData | null>(null);
 
   useEffect(() => {
     loadSettings();
+    loadUser();
   }, []);
 
   const loadSettings = async () => {
@@ -57,6 +60,42 @@ export default function SettingsScreen() {
     } finally {
       setIsLoading(false);
     }
+  };
+
+  const loadUser = () => {
+    const currentUser = AuthService.getCurrentUser();
+    setUser(currentUser);
+  };
+
+  const handleLogin = () => {
+    router.push('/(auth)/login');
+  };
+
+  const handleLogout = async () => {
+    Alert.alert(
+      t('logout'),
+      t('logoutConfirm'),
+      [
+        {
+          text: t('cancel'),
+          style: 'cancel',
+        },
+        {
+          text: t('logout'),
+          style: 'destructive',
+          onPress: async () => {
+            try {
+              await AuthService.logout();
+              setUser(null);
+              router.replace('/(auth)/login');
+            } catch (error) {
+              console.error('Error logging out:', error);
+              Alert.alert(t('error'), t('logoutError'));
+            }
+          },
+        },
+      ]
+    );
   };
 
   const handleResetSettings = async () => {
@@ -103,6 +142,19 @@ export default function SettingsScreen() {
 
   return (
     <SafeAreaView style={[styles.container, isDarkMode && styles.darkBackground]}>
+      <View style={[styles.header, isDarkMode && styles.darkHeader]}>
+        <Text style={[styles.headerTitle, isDarkMode && styles.darkText]}>{t('settings')}</Text>
+        {user ? (
+          <TouchableOpacity onPress={handleLogout} style={styles.authButton}>
+            <Ionicons name="log-out-outline" size={24} color={isDarkMode ? '#FF453A' : '#FF3B30'} />
+          </TouchableOpacity>
+        ) : (
+          <TouchableOpacity onPress={handleLogin} style={styles.authButton}>
+            <Ionicons name="log-in-outline" size={24} color={isDarkMode ? '#34C759' : '#30B94D'} />
+          </TouchableOpacity>
+        )}
+      </View>
+
       <ScrollView style={styles.scrollView}>
         <View style={styles.section}>
           <Text style={[styles.sectionTitle, isDarkMode && styles.darkSectionTitle]}>{t('account')}</Text>
@@ -314,5 +366,26 @@ const styles = StyleSheet.create({
   },
   darkResetButtonText: {
     color: '#FFFFFF',
+  },
+  header: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    padding: 16,
+    backgroundColor: '#FFFFFF',
+    borderBottomWidth: 1,
+    borderBottomColor: '#C6C6C8',
+  },
+  darkHeader: {
+    backgroundColor: '#1C1C1E',
+    borderBottomColor: '#38383A',
+  },
+  headerTitle: {
+    fontSize: 17,
+    fontWeight: '600',
+    color: '#000000',
+  },
+  authButton: {
+    padding: 8,
   },
 }); 

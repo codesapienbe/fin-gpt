@@ -1,75 +1,62 @@
 import { Ionicons } from '@expo/vector-icons';
-import { router } from 'expo-router';
+import { useRouter } from 'expo-router';
 import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import {
-  Alert,
-  KeyboardAvoidingView,
-  Platform,
-  ScrollView,
-  StyleSheet,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  View,
-} from 'react-native';
-import { authService } from '../../services/auth';
+import { Alert, StyleSheet, Text, TextInput, TouchableOpacity, useColorScheme, View } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
+
+import AuthService from '../../services/AuthService';
 
 export default function LoginScreen() {
+  const router = useRouter();
+  const colorScheme = useColorScheme();
+  const isDarkMode = colorScheme === 'dark';
   const { t } = useTranslation();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const [showPassword, setShowPassword] = useState(false);
 
   const handleLogin = async () => {
     if (!email || !password) {
-      Alert.alert(t('error'), t('loginErrorEmptyFields'));
+      Alert.alert(t('error'), t('pleaseFillAllFields'));
       return;
     }
 
     setIsLoading(true);
     try {
-      await authService.login({ email, password });
+      await AuthService.login(email, password);
       router.replace('/(tabs)');
     } catch (error) {
-      Alert.alert(t('error'), t('loginErrorInvalidCredentials'));
+      Alert.alert(t('error'), t('invalidCredentials'));
     } finally {
       setIsLoading(false);
     }
   };
 
-  const handleRegister = () => {
-    router.push('/register');
-  };
-
-  const handleForgotPassword = () => {
-    router.push('/forgot-password');
-  };
-
   return (
-    <KeyboardAvoidingView
-      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-      style={styles.container}
-    >
-      <ScrollView
-        contentContainerStyle={styles.scrollContent}
-        keyboardShouldPersistTaps="handled"
-      >
-        <View style={styles.header}>
-          <Ionicons name="document-text" size={64} color="#007AFF" />
-          <Text style={styles.title}>{t('welcomeBack')}</Text>
-          <Text style={styles.subtitle}>{t('loginSubtitle')}</Text>
-        </View>
+    <SafeAreaView style={[styles.container, isDarkMode && styles.darkBackground]}>
+      <View style={styles.header}>
+        <TouchableOpacity 
+          style={styles.backButton} 
+          onPress={() => router.back()}
+        >
+          <Ionicons name="chevron-back" size={24} color={isDarkMode ? '#ffffff' : '#000000'} />
+          <Text style={[styles.backButtonText, isDarkMode && styles.darkText]}>{t('back')}</Text>
+        </TouchableOpacity>
+        <Text style={[styles.title, isDarkMode && styles.darkText]}>{t('login')}</Text>
+        <View style={{ width: 60 }} />
+      </View>
 
-        <View style={styles.form}>
+      <View style={styles.content}>
+        <View style={[styles.card, isDarkMode && styles.darkCard]}>
           <View style={styles.inputContainer}>
-            <Ionicons name="mail-outline" size={20} color="#666" style={styles.inputIcon} />
+            <Text style={[styles.label, isDarkMode && styles.darkText]}>{t('email')}</Text>
             <TextInput
-              style={styles.input}
-              placeholder={t('email')}
+              style={[styles.input, isDarkMode && styles.darkInput]}
               value={email}
               onChangeText={setEmail}
+              placeholder={t('enterEmail')}
+              placeholderTextColor={isDarkMode ? '#8E8E93' : '#C7C7CC'}
               keyboardType="email-address"
               autoCapitalize="none"
               autoComplete="email"
@@ -77,146 +64,138 @@ export default function LoginScreen() {
           </View>
 
           <View style={styles.inputContainer}>
-            <Ionicons name="lock-closed-outline" size={20} color="#666" style={styles.inputIcon} />
+            <Text style={[styles.label, isDarkMode && styles.darkText]}>{t('password')}</Text>
             <TextInput
-              style={styles.input}
-              placeholder={t('password')}
+              style={[styles.input, isDarkMode && styles.darkInput]}
               value={password}
               onChangeText={setPassword}
-              secureTextEntry={!showPassword}
+              placeholder={t('enterPassword')}
+              placeholderTextColor={isDarkMode ? '#8E8E93' : '#C7C7CC'}
+              secureTextEntry
               autoCapitalize="none"
               autoComplete="password"
             />
-            <TouchableOpacity
-              style={styles.eyeIcon}
-              onPress={() => setShowPassword(!showPassword)}
-            >
-              <Ionicons
-                name={showPassword ? 'eye-off-outline' : 'eye-outline'}
-                size={20}
-                color="#666"
-              />
-            </TouchableOpacity>
           </View>
 
           <TouchableOpacity
-            style={styles.forgotPassword}
-            onPress={handleForgotPassword}
-          >
-            <Text style={styles.forgotPasswordText}>{t('forgotPassword')}</Text>
-          </TouchableOpacity>
-
-          <TouchableOpacity
-            style={[styles.button, isLoading && styles.buttonDisabled]}
+            style={[styles.loginButton, isDarkMode && styles.darkLoginButton]}
             onPress={handleLogin}
             disabled={isLoading}
           >
-            {isLoading ? (
-              <Text style={styles.buttonText}>{t('loggingIn')}</Text>
-            ) : (
-              <Text style={styles.buttonText}>{t('login')}</Text>
-            )}
+            <Text style={styles.loginButtonText}>
+              {isLoading ? t('loggingIn') : t('login')}
+            </Text>
           </TouchableOpacity>
-
-          <View style={styles.registerContainer}>
-            <Text style={styles.registerText}>{t('noAccount')}</Text>
-            <TouchableOpacity onPress={handleRegister}>
-              <Text style={styles.registerLink}>{t('register')}</Text>
-            </TouchableOpacity>
-          </View>
         </View>
-      </ScrollView>
-    </KeyboardAvoidingView>
+
+        <View style={styles.demoContainer}>
+          <Text style={[styles.demoText, isDarkMode && styles.darkSecondaryText]}>
+            {t('demoCredentials')}
+          </Text>
+          <Text style={[styles.demoText, isDarkMode && styles.darkSecondaryText]}>
+            Email: demo@example.com
+          </Text>
+          <Text style={[styles.demoText, isDarkMode && styles.darkSecondaryText]}>
+            Password: password
+          </Text>
+        </View>
+      </View>
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#fff',
+    backgroundColor: '#F2F2F7',
   },
-  scrollContent: {
-    flexGrow: 1,
-    padding: 20,
+  darkBackground: {
+    backgroundColor: '#000000',
   },
   header: {
+    flexDirection: 'row',
     alignItems: 'center',
-    marginTop: 60,
-    marginBottom: 40,
+    justifyContent: 'space-between',
+    padding: 16,
+    backgroundColor: 'rgba(0,0,0,0.5)',
+  },
+  backButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  backButtonText: {
+    fontSize: 17,
+    marginLeft: 8,
+    color: '#000000',
   },
   title: {
-    fontSize: 28,
-    fontWeight: 'bold',
-    color: '#000',
-    marginTop: 20,
+    fontSize: 17,
+    fontWeight: '600',
+    color: '#000000',
   },
-  subtitle: {
-    fontSize: 16,
-    color: '#666',
-    marginTop: 10,
-    textAlign: 'center',
+  darkText: {
+    color: '#FFFFFF',
   },
-  form: {
-    width: '100%',
+  darkSecondaryText: {
+    color: '#8E8E93',
+  },
+  content: {
+    padding: 16,
+  },
+  card: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 10,
+    padding: 16,
+    marginBottom: 16,
+  },
+  darkCard: {
+    backgroundColor: '#1C1C1E',
   },
   inputContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    borderWidth: 1,
-    borderColor: '#ddd',
-    borderRadius: 10,
     marginBottom: 16,
-    paddingHorizontal: 12,
-    height: 50,
   },
-  inputIcon: {
-    marginRight: 10,
+  label: {
+    fontSize: 15,
+    fontWeight: '500',
+    color: '#000000',
+    marginBottom: 8,
   },
   input: {
-    flex: 1,
-    height: '100%',
-    fontSize: 16,
+    height: 44,
+    borderWidth: 1,
+    borderColor: '#C7C7CC',
+    borderRadius: 8,
+    paddingHorizontal: 12,
+    fontSize: 17,
+    color: '#000000',
   },
-  eyeIcon: {
-    padding: 8,
+  darkInput: {
+    borderColor: '#38383A',
+    color: '#FFFFFF',
   },
-  forgotPassword: {
-    alignSelf: 'flex-end',
-    marginBottom: 24,
-  },
-  forgotPasswordText: {
-    color: '#007AFF',
-    fontSize: 14,
-  },
-  button: {
+  loginButton: {
     backgroundColor: '#007AFF',
-    borderRadius: 10,
-    height: 50,
+    height: 44,
+    borderRadius: 8,
     justifyContent: 'center',
     alignItems: 'center',
-    marginBottom: 16,
+    marginTop: 8,
   },
-  buttonDisabled: {
-    opacity: 0.7,
+  darkLoginButton: {
+    backgroundColor: '#0A84FF',
   },
-  buttonText: {
-    color: '#fff',
-    fontSize: 16,
+  loginButtonText: {
+    color: '#FFFFFF',
+    fontSize: 17,
     fontWeight: '600',
   },
-  registerContainer: {
-    flexDirection: 'row',
-    justifyContent: 'center',
+  demoContainer: {
     alignItems: 'center',
+    marginTop: 24,
   },
-  registerText: {
-    color: '#666',
-    fontSize: 14,
-    marginRight: 4,
-  },
-  registerLink: {
-    color: '#007AFF',
-    fontSize: 14,
-    fontWeight: '600',
+  demoText: {
+    fontSize: 13,
+    color: '#8E8E93',
+    marginBottom: 4,
   },
 }); 
